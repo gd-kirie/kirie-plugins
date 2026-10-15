@@ -22,6 +22,11 @@ mise x -- pnpm install --frozen-lockfile
 mise x -- apm install --frozen
 ```
 
+On Linux, mise installs Clang and sets the [Cargo linker](https://doc.rust-lang.org/cargo/reference/config.html#targettriplelinker) for x64 and Arm64.
+The [mise Clang backend](https://mise.jdx.dev/dev-tools/backends/conda.html) installs its compiler dependencies without a separate Conda installation.
+On macOS, install Xcode Command Line Tools.
+On Windows, install Visual Studio Build Tools with the C++ workload and Windows SDK.
+
 Build the native tray library for your host before packaging the npm plugins:
 
 ```sh

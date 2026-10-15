@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v3
         with:
-          install_args: --locked node pnpm dotnet rust
+          install_args: --locked node pnpm dotnet rust clang
           cache: true
       - run: mise x -- pnpm install --frozen-lockfile
       - run: |

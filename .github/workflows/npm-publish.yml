@@ -36,11 +36,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Node and Rust
+      - name: Install native build tools
         uses: jdx/mise-action@v3
         with:
           install: true
-          install_args: --locked node rust
+          install_args: --locked node rust clang
           cache: true
 
       - name: Build Tray GDExtension
