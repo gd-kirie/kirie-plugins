@@ -1,0 +1,83 @@
+lockfile_version: '1'
+apm_version: 0.31.0
+dependencies:
+- repo_url: aminblg/simpleenglish
+  materialization_repo_url: AminBlg/SimpleEnglish
+  name: simple-english
+  host: github.com
+  resolved_commit: a6fcb4fde098b33617cc1578d151ebf58774b883
+  resolved_ref: a6fcb4fde098b33617cc1578d151ebf58774b883
+  version: 2.1.1
+  package_type: skill_bundle
+  deployed_files:
+  - .agents/skills/simple-english
+  - .agents/skills/simple-english/SKILL.md
+  - .agents/skills/simple-english/references/rule-catalog.md
+  - .agents/skills/simple-english/references/strict-vocabulary.md
+  - .agents/skills/simple-english/references/use-cases.md
+  - .agents/skills/simple-english/references/word-swaps.md
+  deployed_file_hashes:
+    .agents/skills/simple-english/SKILL.md: sha256:2f25072b7edd707d525d597b388f473b46baad100a3232e13f60e30b0fcc4a82
+    .agents/skills/simple-english/references/rule-catalog.md: sha256:49175a0614ffe23fd7e9889964015cbd1126be52f19363288e665b6be41d1213
+    .agents/skills/simple-english/references/strict-vocabulary.md: sha256:3f34ef3a878d9dc83de68191b5ddd6220fdb4e3c99eafc89425adfabd46258a7
+    .agents/skills/simple-english/references/use-cases.md: sha256:ac0e7129107693a45f641c1285ba33d996d4567495c6b009b9020cb8e7968229
+    .agents/skills/simple-english/references/word-swaps.md: sha256:4a0056cbc9e5faf2132a2b172ac82f684d30fbf8c0914e86f966666a116ab55f
+  content_hash: sha256:0fd7c5a68d57f388c3b72749fdea75aee943f852d94bfab8f82a6d9a801185dc
+  skill_subset:
+  - simple-english
+  declared_license: MIT
+deployments:
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: sha256:2f25072b7edd707d525d597b388f473b46baad100a3232e13f60e30b0fcc4a82
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english/references/rule-catalog.md
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: sha256:49175a0614ffe23fd7e9889964015cbd1126be52f19363288e665b6be41d1213
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english/references/strict-vocabulary.md
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: sha256:3f34ef3a878d9dc83de68191b5ddd6220fdb4e3c99eafc89425adfabd46258a7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english/references/use-cases.md
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: sha256:ac0e7129107693a45f641c1285ba33d996d4567495c6b009b9020cb8e7968229
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/simple-english/references/word-swaps.md
+  runtime: null
+  scope: project
+  owners:
+  - aminblg/simpleenglish
+  active_owner: aminblg/simpleenglish
+  content_hash: sha256:4a0056cbc9e5faf2132a2b172ac82f684d30fbf8c0914e86f966666a116ab55f

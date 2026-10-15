@@ -1,0 +1,79 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  packages:
+    name: Publish NuGet Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify release tag is on main
+        if: github.event_name == 'push'
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor HEAD refs/remotes/origin/main; then
+            echo "::error::Release tag ${GITHUB_REF_NAME} must point to a commit on main."
+            exit 1
+          fi
+
+      - name: Install mise
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          install_args: --locked dotnet
+          cache: true
+
+      - name: Repair empty NuGet configuration
+        run: test -s "$HOME/.nuget/NuGet/NuGet.Config" || mise x -- dotnet new nugetconfig --force --output "$HOME/.nuget/NuGet"
+
+      - name: Restore dependencies
+        run: mise x -- dotnet restore KiriePlugins.slnx
+
+      - name: Build release
+        run: mise x -- dotnet build KiriePlugins.slnx --configuration Release
+
+      - name: Pack NuGet packages
+        run: >-
+          mise x -- dotnet pack KiriePlugins.slnx --configuration Release --no-build
+          --disable-build-servers -m:1 --output artifacts/nuget
+
+      - name: Validate Trusted Publishing configuration
+        env:
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: |
+          if [[ -z "${NUGET_USER}" ]]; then
+            echo "::error::NUGET_USER must be configured as a repository Actions variable."
+            exit 1
+          fi
+
+      - name: Log in to NuGet
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish to NuGet
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          mise x -- dotnet nuget push "artifacts/nuget/*.nupkg" \
+            --api-key "${NUGET_API_KEY}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

@@ -1,0 +1,62 @@
+[settings]
+lockfile = true
+legacy_version_file = false
+
+[plugins]
+godot = "https://github.com/LemonNekoGH/vfox-godot.git#dd88823451008524efde019c61e222b8dbbf8f62"
+
+[tools]
+godot = "4.7.2-stable_mono"
+node = "24.15.0"
+pnpm = "12.3.4"
+dotnet = "10.0.300"
+rust = { version = "1.99.0", components = ["clippy", "rustfmt"] }
+"pipx:apm-cli" = "0.31.0"
+
+[tasks."build:packages"]
+run = "pnpm run build:packages"
+
+[tasks."build:dotnet"]
+run = "dotnet build KiriePlugins.slnx --configuration Release"
+
+[tasks."build:tray-native"]
+run = "node scripts/build-tray-native.ts"
+
+[tasks.lint]
+depends = ["lint:eslint", "lint:rust", "lint:csharp"]
+
+[tasks."lint:eslint"]
+run = "pnpm run lint:eslint"
+
+[tasks."lint:rust"]
+run = "cargo clippy --manifest-path packages/GdKirie.Tray/native/Cargo.toml --all-targets --locked -- -D warnings"
+
+[tasks."lint:csharp"]
+run = "dotnet format analyzers KiriePlugins.slnx --verify-no-changes"
+
+[tasks.format]
+depends = ["format:eslint", "format:rust", "format:csharp"]
+
+[tasks."format:eslint"]
+run = "pnpm run format:eslint"
+
+[tasks."format:rust"]
+run = "cargo fmt --manifest-path packages/GdKirie.Tray/native/Cargo.toml"
+
+[tasks."format:csharp"]
+run = "dotnet format style KiriePlugins.slnx"
+
+[tasks.typecheck]
+run = "pnpm run typecheck"
+
+[tasks."test:unit"]
+run = "pnpm run test:unit"
+
+[tasks."test:tray-native"]
+run = "cargo test --manifest-path packages/GdKirie.Tray/native/Cargo.toml --locked"
+
+[tasks."pack:nuget"]
+run = "dotnet pack KiriePlugins.slnx --configuration Release --output artifacts/nuget"
+
+[tasks.release]
+run = "pnpm run release"

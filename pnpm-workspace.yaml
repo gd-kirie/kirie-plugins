@@ -1,0 +1,18 @@
+packages:
+  - "packages/*"
+
+allowBuilds:
+  tree-sitter: true
+  tree-sitter-gdscript: true
+  tree-sitter-godot-resource: true
+
+catalog:
+  "@antfu/eslint-config": ^9.5.1
+  "@moeru/eventa": ^1.0.2
+  bumpp: ^11.0.1
+  eslint: ^10.11.0
+  eslint-plugin-format: ^2.0.1
+  tsdown: ^0.22.2
+  typescript: ^6.0.3
+  typescript-to-gdscript: github:LemonNekoGH/typescript-to-gdscript#demo/external-package-sources
+  vitest: 4.1.10

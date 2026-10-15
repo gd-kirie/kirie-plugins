@@ -1,0 +1,35 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.task }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [lint, format, typecheck, test:unit, test:tray-native, build:dotnet]
+    env:
+      MISE_EXEC_AUTO_INSTALL: "false"
+      MISE_NOT_FOUND_AUTO_INSTALL: "false"
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v3
+        with:
+          install_args: --locked node pnpm dotnet rust
+          cache: true
+      - run: mise x -- pnpm install --frozen-lockfile
+      - run: |
+          mise run ${{ matrix.task }}
+          git diff --exit-code

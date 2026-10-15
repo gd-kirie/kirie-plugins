@@ -1,0 +1,22 @@
+{
+  "name": "kirie-plugins",
+  "version": "0.13.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "build:packages": "pnpm -r run build",
+    "lint:eslint": "eslint .",
+    "format:eslint": "eslint . --fix",
+    "test:unit": "pnpm -r run test:run",
+    "typecheck": "pnpm -r run typecheck",
+    "release": "bumpp"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "bumpp": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-format": "catalog:",
+    "kirie": "0.13.0"
+  }
+}

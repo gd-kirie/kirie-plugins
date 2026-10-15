@@ -1,0 +1,115 @@
+name: Publish npm Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tray-native:
+    name: Tray GDExtension (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15-intel
+          - macos-15
+          - windows-latest
+          - windows-11-arm
+    env:
+      MISE_EXEC_AUTO_INSTALL: "false"
+      MISE_NOT_FOUND_AUTO_INSTALL: "false"
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Node and Rust
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          install_args: --locked node rust
+          cache: true
+
+      - name: Build Tray GDExtension
+        run: mise run build:tray-native
+
+      - name: Upload Tray GDExtension
+        uses: actions/upload-artifact@v7
+        with:
+          name: tray-native-${{ matrix.runner }}
+          path: packages/GdKirie.Tray/native/artifacts
+          if-no-files-found: error
+
+  packages:
+    name: Publish npm packages
+    runs-on: ubuntu-latest
+    needs: tray-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify release tag is on main
+        if: github.event_name == 'push'
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor HEAD refs/remotes/origin/main; then
+            echo "::error::Release tag ${GITHUB_REF_NAME} must point to a commit on main."
+            exit 1
+          fi
+
+      - name: Install Node and pnpm
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          install_args: --locked node pnpm
+          cache: true
+
+      - name: Install pnpm dependencies
+        run: mise x -- pnpm install --frozen-lockfile
+
+      - name: Typecheck packages
+        run: mise run typecheck
+
+      - name: Download Tray GDExtensions
+        uses: actions/download-artifact@v8
+        with:
+          pattern: tray-native-*
+          path: packages/GdKirie.Tray/native/artifacts
+          merge-multiple: true
+
+      - name: Build packages
+        run: mise run build:packages
+
+      - name: Verify bundled Tray GDExtensions
+        run: |
+          for asset in \
+            linux-x64/libkirie_tray_native.so \
+            linux-arm64/libkirie_tray_native.so \
+            osx-x64/libkirie_tray_native.dylib \
+            osx-arm64/libkirie_tray_native.dylib \
+            win-x64/kirie_tray_native.dll \
+            win-arm64/kirie_tray_native.dll; do
+            test -s "packages/tray/addon/kirie_tray/bin/${asset}"
+          done
+
+      - name: Dry-run publish npm packages
+        run: mise x -- pnpm publish -r --access public --no-git-checks --dry-run
+
+      - name: Publish npm packages
+        if: github.event_name == 'push'
+        run: mise x -- pnpm publish -r --access public --no-git-checks
