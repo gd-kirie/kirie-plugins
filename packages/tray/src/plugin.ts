@@ -10,7 +10,7 @@ export default defineKiriePlugin({
   id: "tray",
   dotnetPackages: [
     {
-      id: "GdKirie.Tray",
+      id: "GdKirie.Tray.EventaAdapter",
       version: packageJson.version,
     },
   ],

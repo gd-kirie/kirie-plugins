@@ -1,75 +1,184 @@
 import type { KirieEventaContext } from "@gd-kirie/ipc-eventa";
-import type { TrayIcon, TrayMenuItem } from "./index";
-import { createContext, defineEventa } from "@moeru/eventa";
-import { describe, expect, it } from "vitest";
-import { createTrayClient, trayMenuItemActivated } from "./index";
+import type { NativeEvent, Reply, Resource } from "./contracts";
+import { createContext, defineEventa, matchBy } from "@moeru/eventa";
+import { describe, expect, it, vi } from "vitest";
+import {
+  CheckMenuItem,
+  createTrayClient,
+  IconMenuItem,
+  Menu,
+  MenuItem,
+  PredefinedMenuItem,
+  Submenu,
+  TrayError,
+  TrayIcon,
+} from "./index";
 
 interface InvokeBody<T> {
   content: T;
   invokeId: string;
 }
 
-function respondToInvoke<T>(
-  context: KirieEventaContext,
-  name: string,
-  expectedContent: T,
-): void {
-  context.on(defineEventa<InvokeBody<T>>(`${name}-send`), ({ body }) => {
-    if (!body)
-      throw new Error("Tray request has no body.");
-
-    expect(body.content).toEqual(expectedContent);
-    context.emit(
-      defineEventa<InvokeBody<Record<string, never>>>(`${name}-receive-${body.invokeId}`),
-      { content: {}, invokeId: body.invokeId },
-    );
-  });
+interface Call {
+  wire: string;
+  args: Record<string, unknown>;
 }
 
-describe("system tray", () => {
-  it("uses the Tray plugin wire contract", async () => {
-    const context = createContext() as KirieEventaContext;
-    const tray = createTrayClient(context);
-    const menu: TrayMenuItem[] = [
-      { type: "item", id: "show", text: "Show Kirie" },
-      { type: "check", id: "enabled", text: "Enabled", checked: true },
-      { type: "separator" },
-      {
-        type: "submenu",
-        text: "More",
-        children: [{ type: "item", id: "quit", text: "Quit", enabled: false }],
-      },
-    ];
-    const createIcon: TrayIcon = {
-      icon: "res://tray-template.svg",
-      iconAsTemplate: true,
+function host(respond: (call: Call) => Reply): {
+  context: KirieEventaContext;
+  calls: Call[];
+  emit: (event: NativeEvent) => void;
+} {
+  const context = createContext() as KirieEventaContext;
+  const calls: Call[] = [];
+  context.on(matchBy("*"), (event) => {
+    const name = event.id;
+    if (!name.startsWith("kirie:tray:") || !name.endsWith("-send")) {
+      return;
+    }
+
+    const body = event.body as InvokeBody<Record<string, unknown>> | undefined;
+    if (!body) {
+      throw new Error("Tray invocation has no body.");
+    }
+
+    // Mirror the JSON transport used by the real Eventa adapter.
+    const call = {
+      wire: name.slice(0, -"-send".length),
+      args: JSON.parse(JSON.stringify(body.content)) as Record<string, unknown>,
     };
-    const icon: TrayIcon = { icon: "res://icon.svg", iconAsTemplate: false };
+    calls.push(call);
+    const reply = JSON.parse(JSON.stringify(respond(call))) as Reply;
+    context.emit(defineEventa<InvokeBody<Reply>>(`${call.wire}-receive-${body.invokeId}`), {
+      content: reply,
+      invokeId: body.invokeId,
+    });
+  });
+  return {
+    context,
+    calls,
+    emit(event) {
+      context.emit(defineEventa<NativeEvent>("kirie:tray:event"), event);
+    },
+  };
+}
 
-    respondToInvoke(context, "kirie:tray:create", createIcon);
-    respondToInvoke(context, "kirie:tray:set-icon", icon);
-    respondToInvoke(context, "kirie:tray:set-menu", menu);
-    respondToInvoke(context, "kirie:tray:set-tooltip", null);
-    respondToInvoke(context, "kirie:tray:set-visible", false);
-    respondToInvoke(context, "kirie:tray:destroy", {});
+const check: Resource = { handle: "h-check", id: "enabled", kind: "check" };
+const menu: Resource = { handle: "h-menu", id: "menu", kind: "menu" };
+const tray: Resource = { handle: "h-tray", id: "tray", kind: "tray" };
 
-    await expect(tray.create(createIcon)).resolves.toBeUndefined();
-    await expect(tray.setIcon(icon)).resolves.toBeUndefined();
-    await expect(tray.setMenu(menu)).resolves.toBeUndefined();
-    await expect(tray.setTooltip(null)).resolves.toBeUndefined();
-    await expect(tray.setVisible(false)).resolves.toBeUndefined();
-    await expect(tray.destroy()).resolves.toBeUndefined();
+describe("tray objects over Eventa", () => {
+  it("converts object arguments to handles and preserves optional and nullable fields", async () => {
+    const resources: Record<string, unknown> = {
+      "kirie:tray:check-create": check,
+      "kirie:tray:menu-create": menu,
+      "kirie:tray:tray-create": tray,
+      "kirie:tray:menu-items": [check],
+    };
+    const native = host(({ wire }) => ({ ok: true, value: resources[wire] ?? null }));
+    const client = createTrayClient(native.context);
+    const item = await client.createCheckMenuItem({ text: "Enabled" });
+    const container = await client.createMenu({ items: [item] });
+    const icon = { kind: "rgba" as const, rgba: [0, 128, 255, 255], width: 1, height: 1 };
+    const iconTray = await client.createTray({ icon, menu: container, tooltip: "" });
+    await container.insert(2, item);
+    await iconTray.setMenu(null);
+    await iconTray.setIcon(null, false);
+    expect((await container.items())[0]).toBeInstanceOf(CheckMenuItem);
+
+    expect(native.calls).toContainEqual({ wire: "kirie:tray:check-create", args: { options: { text: "Enabled" } } });
+    expect(native.calls).toContainEqual({ wire: "kirie:tray:menu-create", args: { options: { items: [check.handle] } } });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:tray-create",
+      args: { options: { icon, menu: menu.handle, tooltip: "" } },
+    });
+    expect(native.calls).toContainEqual({ wire: "kirie:tray:menu-insert", args: { handle: menu.handle, items: [check.handle], position: 2 } });
+    expect(native.calls).toContainEqual({ wire: "kirie:tray:tray-set-menu", args: { handle: tray.handle, menu: null } });
+    expect(native.calls).toContainEqual({ wire: "kirie:tray:tray-set-icon", args: { handle: tray.handle, icon: null, iconAsTemplate: false } });
   });
 
-  it("receives the activated menu item ID as the event body", () => {
-    const context = createContext() as KirieEventaContext;
-    let activatedId: string | undefined;
+  it("wraps application descriptors locally as their concrete object kinds", () => {
+    const resources: Resource[] = [
+      tray,
+      menu,
+      check,
+      { handle: "sub", id: "sub", kind: "submenu" },
+      { handle: "item", id: "item", kind: "item" },
+      { handle: "icon", id: "icon", kind: "icon" },
+      { handle: "about", id: "about", kind: "predefined" },
+    ];
+    const native = host(() => ({ ok: true, value: null }));
+    const client = createTrayClient(native.context);
+    const objects = resources.map((resource) => client.fromResource(resource));
+    const classes = [TrayIcon, Menu, CheckMenuItem, Submenu, MenuItem, IconMenuItem, PredefinedMenuItem];
+    objects.forEach((object, index) => expect(object).toBeInstanceOf(classes[index]));
+    expect(objects.map(({ id, handle, kind }) => ({ id, handle, kind }))).toEqual(resources);
+    expect(native.calls).toHaveLength(0);
+  });
 
-    context.on(trayMenuItemActivated, ({ body }) => {
-      activatedId = body;
+  it("rejects foreign context references before invocation and permits the same borrowed context", async () => {
+    const native = host(({ wire }) => ({ ok: true, value: wire === "kirie:tray:menu-create" ? menu : check }));
+    const otherNative = host(() => ({ ok: true, value: menu }));
+    const client = createTrayClient(native.context);
+    const sameContextClient = createTrayClient(native.context);
+    const foreignClient = createTrayClient(otherNative.context);
+    const item = await client.createCheckMenuItem({ text: "Enabled" });
+    const localMenu = await sameContextClient.createMenu({ items: [item] });
+    const foreignMenu = await foreignClient.createMenu();
+    await localMenu.append(item);
+    const calls = otherNative.calls.length;
+    await expect(foreignMenu.append(item)).rejects.toMatchObject({ code: "invalid-argument" });
+    expect(otherNative.calls).toHaveLength(calls);
+    await expect(foreignClient.createMenu({ items: [item] })).rejects.toBeInstanceOf(TrayError);
+    await expect(client.createTray({ menu: foreignMenu })).rejects.toMatchObject({ code: "invalid-argument" });
+  });
+
+  it("preserves native error codes and messages", async () => {
+    const native = host(({ wire }) => wire === "kirie:tray:tray-create" ?
+        { ok: true, value: tray } :
+        { ok: false, error: { code: "unsupported", message: "Native API is unavailable on this platform." } });
+    const iconTray = await createTrayClient(native.context).createTray();
+    await expect(iconTray.showMenu()).rejects.toMatchObject({
+      name: "TrayError",
+      code: "unsupported",
+      message: "Native API is unavailable on this platform.",
     });
-    context.emit(trayMenuItemActivated, "show");
+  });
 
-    expect(activatedId).toBe("show");
+  it("routes event subscriptions by handle and unsubscribes", async () => {
+    const native = host(({ wire }) => ({ ok: true, value: wire === "kirie:tray:tray-create" ? tray : wire === "kirie:tray:check-create" ? check : null }));
+    const client = createTrayClient(native.context);
+    const iconTray = await client.createTray();
+    const item = await client.createCheckMenuItem({ text: "Enabled" });
+    const allEvents = vi.fn();
+    const trayEvents = vi.fn();
+    const itemEvents = vi.fn();
+    const offAll = client.onEvent(allEvents);
+    const offTray = iconTray.onEvent(trayEvents);
+    const offItem = item.onClick(itemEvents);
+    const menuEvent: NativeEvent = { type: "menu", item: check };
+    const click: NativeEvent = {
+      type: "click",
+      tray,
+      position: { x: 4, y: 8 },
+      rect: { position: { x: 1, y: 2 }, size: { width: 20, height: 20 } },
+      button: "left",
+      buttonState: "up",
+    };
+    native.emit(menuEvent);
+    native.emit(click);
+    native.emit({ type: "menu", item: { ...check, handle: "other-check" } });
+    native.emit({ ...click, tray: { ...tray, handle: "other-tray" } });
+    expect(allEvents).toHaveBeenCalledTimes(4);
+    expect(trayEvents).toHaveBeenCalledExactlyOnceWith(click);
+    expect(itemEvents).toHaveBeenCalledExactlyOnceWith(menuEvent);
+    offAll();
+    offTray();
+    offItem();
+    native.emit(click);
+    native.emit(menuEvent);
+    expect(allEvents).toHaveBeenCalledTimes(4);
+    expect(trayEvents).toHaveBeenCalledTimes(1);
+    expect(itemEvents).toHaveBeenCalledTimes(1);
   });
 });

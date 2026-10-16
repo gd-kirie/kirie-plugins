@@ -1,12 +1,13 @@
 # NuGet publishing
 
-This repository publishes `GdKirie.Tray` and `GdKirie.Notifications` for .NET 10.
-Both libraries reference the published `GdKirie.EventaAdapter` package.
+This repository publishes `GdKirie.Tray`, `GdKirie.Tray.EventaAdapter`, and `GdKirie.Notifications` for .NET 10.
+The Tray SDK has no Eventa dependency.
+The Tray Eventa adapter and Notifications reference the published `GdKirie.EventaAdapter` package.
 The Tray native extension ships in its npm package, not its NuGet package.
 
 ## Local validation
 
-Build and pack both managed plugins:
+Build and pack the managed plugins:
 
 ```sh
 mise run build:dotnet
@@ -27,7 +28,7 @@ Move the plugin packages' NuGet Trusted Publishing policy to this repository bef
 
 Set the repository Actions variable `NUGET_USER` to the NuGet profile username.
 The workflow exchanges GitHub's OIDC token for a short-lived NuGet key.
-It publishes both packages for `v*` tags that are reachable from main.
+It publishes the packages for `v*` tags that are reachable from main.
 A manual workflow run also publishes the selected ref.
 
 ## References
