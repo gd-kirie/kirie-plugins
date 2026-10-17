@@ -10,8 +10,8 @@
     <PackageId>GdKirie.Tray</PackageId>
     <Version>0.13.0</Version>
     <Authors>Moeru AI</Authors>
-    <Description>Native system tray and menu objects for Godot applications.</Description>
-    <PackageTags>godot;kirie;tray;menu;status-item</PackageTags>
+    <Description>Native system tray and menu objects with Kirie Eventa integration.</Description>
+    <PackageTags>godot;kirie;eventa;tray;menu;status-item</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/gd-kirie/kirie-plugins</PackageProjectUrl>
@@ -24,8 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GdKirie.EventaAdapter" Version="0.13.0" ExcludeAssets="contentFiles" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <InternalsVisibleTo Include="GdKirie.Tray.EventaAdapter" />
   </ItemGroup>
 
 </Project>

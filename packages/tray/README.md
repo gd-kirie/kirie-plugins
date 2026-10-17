@@ -27,8 +27,8 @@ Install the plugin dependencies:
 pnpm kirie doctor --fix plugin:tray
 ```
 
-This command installs `addons/kirie_tray` and the `GdKirie.Tray.EventaAdapter`
-NuGet package. The adapter depends on the transport-independent `GdKirie.Tray` SDK.
+This command installs `addons/kirie_tray` and the `GdKirie.Tray` NuGet package.
+The NuGet package includes the native object wrappers and Eventa integration.
 The npm package bundles the desktop GDExtension libraries. Godot selects the
 library for the current platform and includes it in application exports.
 macOS, Windows, and Linux support x64 and Arm64. Linux requires a
@@ -36,7 +36,7 @@ StatusNotifierItem host.
 
 ## Native objects
 
-In Godot, [register and attach the adapter](../GdKirie.Tray.EventaAdapter/README.md)
+In Godot, [register and attach the adapter](../GdKirie.Tray/README.md#browser-access)
 to the application's Eventa context.
 Create a client with the application's Eventa context:
 
@@ -166,6 +166,6 @@ objects from IPC. The plugin does not expose `muda` application menu bars or win
 It does not reproduce deprecated upstream APIs.
 
 See the [`tray` example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md) for a complete setup.
-The design follows [ADR-0016](../../docs/decisions/0016-forward-native-tray-and-menu-objects.md).
+The design follows [ADR-0001](../../docs/decisions/0001-keep-tray-a-thin-forwarding-layer.md).
 Primary API sources are [tray-icon](https://github.com/tauri-apps/tray-icon/tree/17e3196a15aa6174a21588ac4c5a52e322878479)
 and [muda](https://github.com/tauri-apps/muda/tree/33dfdf7c6daceed1dddd73b658e0e4c912685f36).

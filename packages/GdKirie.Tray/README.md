@@ -1,25 +1,16 @@
 # GdKirie.Tray
 
-`GdKirie.Tray` provides ordinary C# tray and menu objects for Godot .NET applications.
+`GdKirie.Tray` provides tray and menu objects with Eventa integration for Kirie applications.
 It calls the Rust GDExtension, which wraps [`tray-icon`](https://github.com/tauri-apps/tray-icon)
 and [`muda`](https://github.com/tauri-apps/muda).
-The SDK has no Eventa or WebView dependency.
+The package includes Eventa contracts and handlers that borrow the application's context.
 
 ## Install
 
-Add the NuGet package to your Godot .NET project:
-
-```sh
-dotnet add package GdKirie.Tray
-```
-
-Install the native `addons/kirie_tray` addon from the `@gd-kirie/tray` package.
-For SDK-only use, copy `node_modules/@gd-kirie/tray/addon/kirie_tray` to your
-project's `addons/kirie_tray` directory. No Kirie core addon is required.
-The optional [plugin installer](../tray/README.md) installs this addon through
-`kirie doctor --fix plugin:tray` and also adds the optional Eventa adapter.
+Install and configure the plugin as described in the [plugin setup](../tray/README.md).
+The installer adds the `GdKirie.Tray` NuGet package and the native `addons/kirie_tray` addon.
 Godot loads and exports the platform library from the addon.
-The NuGet SDK contains managed code only.
+The NuGet package contains managed code only.
 
 ## Use native objects
 
@@ -90,9 +81,40 @@ A disposed C# object throws `ObjectDisposedException` on further native access.
 
 ## Browser access
 
-[`GdKirie.Tray.EventaAdapter`](../GdKirie.Tray.EventaAdapter/README.md) provides optional browser access through an existing Eventa context.
+Register the JSON contracts before you create the application's Eventa context:
 
-See the [standalone C# example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray-native/README.md), the
-[browser example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md), the
+```csharp
+using GdKirie.Tray;
+using GdKirie.Tray.EventaAdapter;
+using GdKirie.EventaAdapter;
+
+var registry = GdKirieTrayEventaAdapter.Register(new KirieEventaJsonRegistry());
+using var eventa = kirie.CreateEventaContext(registry);
+using var adapter = GdKirieTrayEventaAdapter.Attach(eventa.Context);
+using var item = new CheckMenuItem(new("Enabled"));
+var resource = adapter.Expose(item);
+```
+
+The `GdKirie.Tray` package includes the `GdKirie.Tray.EventaAdapter` namespace.
+
+Send the returned descriptor through an application-defined request or event.
+Browser code calls `client.fromResource(resource)` to wrap it locally.
+Both languages then operate on the same native state.
+
+The adapter owns one reference and one live handle per native object.
+Repeated queries and `Expose` calls reuse that handle without extra retained references or event subscriptions.
+Closing the handle invalidates browser wrappers that use it.
+The application's original C# wrapper and native parent references remain usable.
+
+Descriptors contain a transport handle, native upstream ID, and object kind.
+Creation IDs pass upstream. The adapter provides no aliases, discovery, or reload recovery.
+The application owns page lifetime and decides when to replace an adapter or share descriptors.
+
+Dispose the adapter before its Eventa context during application shutdown.
+Disposal removes its handlers and subscriptions and releases all of its references.
+The application retains ownership of its Eventa context and WebView.
+All adapter operations run on Godot's main thread.
+
+See the [browser example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md), the
 [browser API](../tray/README.md), and
-[architecture decision](../../docs/decisions/0016-forward-native-tray-and-menu-objects.md).
+[architecture decision](../../docs/decisions/0001-keep-tray-a-thin-forwarding-layer.md).

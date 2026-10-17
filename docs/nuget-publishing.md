@@ -1,8 +1,7 @@
 # NuGet publishing
 
-This repository publishes `GdKirie.Tray`, `GdKirie.Tray.EventaAdapter`, and `GdKirie.Notifications` for .NET 10.
-The Tray SDK has no Eventa dependency.
-The Tray Eventa adapter and Notifications reference the published `GdKirie.EventaAdapter` package.
+This repository publishes `GdKirie.Tray` and `GdKirie.Notifications` for .NET 10.
+Both packages include their Eventa integration and reference the published `GdKirie.EventaAdapter` package.
 The Tray native extension ships in its npm package, not its NuGet package.
 
 ## Local validation

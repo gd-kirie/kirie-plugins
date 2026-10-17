@@ -8,7 +8,7 @@ Runnable projects live in [kirie-examples](https://github.com/gd-kirie/kirie-exa
 
 | Capability | Browser package | Godot host |
 | --- | --- | --- |
-| System tray | [@gd-kirie/tray](packages/tray/README.md) | [GdKirie.Tray](packages/GdKirie.Tray/README.md) and optional [Eventa adapter](packages/GdKirie.Tray.EventaAdapter/README.md) |
+| System tray | [@gd-kirie/tray](packages/tray/README.md) | [GdKirie.Tray](packages/GdKirie.Tray/README.md) |
 | Notifications | [@gd-kirie/notifications](packages/notifications/README.md) | [GdKirie.Notifications](packages/GdKirie.Notifications/README.md) |
 
 ## Development

@@ -1,7 +1,7 @@
 # Architecture decisions
 
-The Tray decisions retain their numbers from the original Kirie repository.
+Decision numbers start at 0001 in this repository.
 
 | Decision | Status |
 | --- | --- |
-| [0016: Keep Tray a thin forwarding layer](0016-forward-native-tray-and-menu-objects.md) | Accepted |
+| [0001: Keep Tray a thin forwarding layer](0001-keep-tray-a-thin-forwarding-layer.md) | Accepted |
