@@ -3,6 +3,7 @@ use godot::{
     classes::{ResourceLoader, Texture2D, image::Format},
     prelude::*,
 };
+use serde::{Deserialize, de::value::StrDeserializer};
 use tray_icon::{
     Icon, TrayIcon,
     menu::{Icon as MenuIcon, MenuItemKind, NativeIcon},
@@ -15,7 +16,11 @@ pub enum IconValue {
 
 pub fn classify(source: IconSource) -> Result<IconValue> {
     match source {
-        IconSource::Native { name } => Ok(IconValue::Native(native(&name)?)),
+        IconSource::Native { name } => {
+            NativeIcon::deserialize(StrDeserializer::<serde::de::value::Error>::new(&name))
+                .map(IconValue::Native)
+                .map_err(|error| Error::new("invalid-argument", error))
+        }
         IconSource::NativeName { name } => {
             #[cfg(not(target_os = "windows"))]
             {
@@ -219,81 +224,6 @@ fn size(width: Option<u32>, height: Option<u32>) -> Result<Option<(u32, u32)>> {
     }
 }
 
-fn native(name: &str) -> Result<NativeIcon> {
-    const ICONS: &[(&str, NativeIcon)] = &[
-        ("Add", NativeIcon::Add),
-        ("Advanced", NativeIcon::Advanced),
-        ("Bluetooth", NativeIcon::Bluetooth),
-        ("Bookmarks", NativeIcon::Bookmarks),
-        ("Caution", NativeIcon::Caution),
-        ("ColorPanel", NativeIcon::ColorPanel),
-        ("ColumnView", NativeIcon::ColumnView),
-        ("Computer", NativeIcon::Computer),
-        ("EnterFullScreen", NativeIcon::EnterFullScreen),
-        ("Everyone", NativeIcon::Everyone),
-        ("ExitFullScreen", NativeIcon::ExitFullScreen),
-        ("FlowView", NativeIcon::FlowView),
-        ("Folder", NativeIcon::Folder),
-        ("FolderBurnable", NativeIcon::FolderBurnable),
-        ("FolderSmart", NativeIcon::FolderSmart),
-        ("FollowLinkFreestanding", NativeIcon::FollowLinkFreestanding),
-        ("FontPanel", NativeIcon::FontPanel),
-        ("GoLeft", NativeIcon::GoLeft),
-        ("GoRight", NativeIcon::GoRight),
-        ("Home", NativeIcon::Home),
-        ("IChatTheater", NativeIcon::IChatTheater),
-        ("IconView", NativeIcon::IconView),
-        ("Info", NativeIcon::Info),
-        (
-            "InvalidDataFreestanding",
-            NativeIcon::InvalidDataFreestanding,
-        ),
-        ("LeftFacingTriangle", NativeIcon::LeftFacingTriangle),
-        ("ListView", NativeIcon::ListView),
-        ("LockLocked", NativeIcon::LockLocked),
-        ("LockUnlocked", NativeIcon::LockUnlocked),
-        ("MenuMixedState", NativeIcon::MenuMixedState),
-        ("MenuOnState", NativeIcon::MenuOnState),
-        ("MobileMe", NativeIcon::MobileMe),
-        ("MultipleDocuments", NativeIcon::MultipleDocuments),
-        ("Network", NativeIcon::Network),
-        ("Path", NativeIcon::Path),
-        ("PreferencesGeneral", NativeIcon::PreferencesGeneral),
-        ("QuickLook", NativeIcon::QuickLook),
-        ("RefreshFreestanding", NativeIcon::RefreshFreestanding),
-        ("Refresh", NativeIcon::Refresh),
-        ("Remove", NativeIcon::Remove),
-        ("RevealFreestanding", NativeIcon::RevealFreestanding),
-        ("RightFacingTriangle", NativeIcon::RightFacingTriangle),
-        ("Share", NativeIcon::Share),
-        ("Slideshow", NativeIcon::Slideshow),
-        ("SmartBadge", NativeIcon::SmartBadge),
-        ("StatusAvailable", NativeIcon::StatusAvailable),
-        ("StatusNone", NativeIcon::StatusNone),
-        (
-            "StatusPartiallyAvailable",
-            NativeIcon::StatusPartiallyAvailable,
-        ),
-        ("StatusUnavailable", NativeIcon::StatusUnavailable),
-        (
-            "StopProgressFreestanding",
-            NativeIcon::StopProgressFreestanding,
-        ),
-        ("StopProgress", NativeIcon::StopProgress),
-        ("TrashEmpty", NativeIcon::TrashEmpty),
-        ("TrashFull", NativeIcon::TrashFull),
-        ("User", NativeIcon::User),
-        ("UserAccounts", NativeIcon::UserAccounts),
-        ("UserGroup", NativeIcon::UserGroup),
-        ("UserGuest", NativeIcon::UserGuest),
-    ];
-    ICONS
-        .iter()
-        .find(|(candidate, _)| *candidate == name)
-        .map(|(_, icon)| icon.clone())
-        .ok_or_else(|| Error::new("invalid-argument", format!("unknown native icon: {name}")))
-}
-
 pub fn set_tray(tray: &TrayIcon, source: Option<IconSource>, template: bool) -> Result<()> {
     if template && !cfg!(target_os = "macos") {
         return Err(Error::unsupported("template icons require macOS"));
@@ -373,6 +303,27 @@ fn apply_item_icon(item: &MenuItemKind, icon: Option<MenuIcon>, template: bool) 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_upstream_native_variants_and_rejects_invalid_names() {
+        let icon = classify(IconSource::Native {
+            name: "StatusPartiallyAvailable".to_owned(),
+        })
+        .unwrap();
+        assert!(matches!(
+            icon,
+            IconValue::Native(NativeIcon::StatusPartiallyAvailable)
+        ));
+
+        for name in ["status-partially-available", "UnknownIcon", "Raw"] {
+            let Err(error) = classify(IconSource::Native {
+                name: name.to_owned(),
+            }) else {
+                panic!("invalid native icon name was accepted: {name}");
+            };
+            assert_eq!(error.code, "invalid-argument");
+        }
+    }
 
     #[test]
     fn protects_upstream_arithmetic_and_preserves_pixel_errors() {

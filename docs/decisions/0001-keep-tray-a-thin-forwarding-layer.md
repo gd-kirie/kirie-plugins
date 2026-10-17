@@ -24,6 +24,7 @@ Keep explicit methods that convert arguments and call upstream operations.
 Expose each public upstream predefined-item constructor as a separate operation.
 Do not expose the private upstream action type through a Kirie enum or a `kind` selector.
 C# static methods, browser methods, and native initializers call the corresponding upstream constructor.
+Use the upstream Serde implementation for public `NativeIcon` variant names instead of a separate name table.
 
 Native objects remain the source of state. Preserve upstream defaults, errors,
 and platform differences; do not emulate unsupported behavior.

@@ -10,9 +10,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 godot = { version = "=0.5.5", features = ["api-4-7"] }
+serde = "=1.0.229"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-tray-icon = { version = "=0.26.1", default-features = false, features = ["ksni"] }
+tray-icon = { version = "=0.26.1", default-features = false, features = ["ksni", "muda-serde"] }
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
-tray-icon = { version = "=0.26.1" }
+tray-icon = { version = "=0.26.1", features = ["muda-serde"] }

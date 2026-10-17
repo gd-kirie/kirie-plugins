@@ -7,9 +7,9 @@ public abstract record IconSource
     public sealed record Resource(string Path) : IconSource;
     /// <summary>RGBA pixels in row-major order.</summary>
     public sealed record Rgba(byte[] Pixels, uint Width, uint Height) : IconSource;
-    /// <summary>An upstream named native icon.</summary>
+    /// <summary>A public upstream NativeIcon variant name, such as Folder or StatusAvailable.</summary>
     public sealed record Native(string Name) : IconSource;
-    /// <summary>A macOS system image name.</summary>
+    /// <summary>A macOS system image name or a Linux theme icon name.</summary>
     public sealed record NativeName(string Name) : IconSource;
     /// <summary>A Windows stock icon identifier.</summary>
     public sealed record WindowsStock(int Id) : IconSource;

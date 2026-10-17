@@ -88,6 +88,11 @@ sources. `null` clears an optional icon, menu, tooltip, title, or accelerator.
 An omitted creation field uses the upstream default. RGBA uses a JSON number
 array, not a `Uint8Array` object.
 
+`{ kind: "native", name: "Folder" }` uses a public upstream `NativeIcon` variant name.
+Rust reads the name with the upstream Serde implementation.
+`native-name` passes macOS system image names or Linux theme icon names upstream.
+`windows-stock` passes Windows stock icon IDs upstream.
+
 Accelerators use `{ kind: "physical" | "logical", value: string }`. Upstream
 `Accelerator` or `KeyAccelerator` parses the string.
 

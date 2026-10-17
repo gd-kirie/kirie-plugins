@@ -48,6 +48,10 @@ Both support `Items`, `Append`, `Prepend`, `Insert`, `Remove`, and `RemoveAt`.
 Both can be attached to a `TrayIcon`.
 
 `IconSource` distinguishes Godot textures, RGBA pixels, native icons, and Windows icon sources.
+`IconSource.Native` accepts public upstream `NativeIcon` variant names, such as `Folder` and `StatusAvailable`.
+Rust uses the upstream Serde implementation to read these names.
+`IconSource.NativeName` passes macOS system image names or Linux theme icon names upstream.
+`IconSource.WindowsStock` passes Windows stock icon IDs upstream.
 `Accelerator.Physical` and `Accelerator.Logical` preserve the two upstream keyboard accelerator types.
 `PredefinedMenuItem` exposes the public upstream constructors as static methods:
 
