@@ -19,6 +19,7 @@ jobs:
     name: Tray GDExtension (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
         runner:
           - ubuntu-24.04
@@ -40,7 +41,7 @@ jobs:
         uses: jdx/mise-action@v3
         with:
           install: true
-          install_args: --locked node rust clang
+          install_args: ${{ runner.os == 'Linux' && '--locked node rust clang' || '--locked node rust' }}
           cache: true
 
       - name: Build and assemble Tray addon
