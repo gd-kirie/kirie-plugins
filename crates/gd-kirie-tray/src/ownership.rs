@@ -14,18 +14,13 @@ pub struct Children {
 }
 
 impl Children {
-    pub fn reconcile(
-        &mut self,
-        actual: &[MenuItemKind],
-        incoming: &[Gd<KirieTrayItem>],
-    ) -> Result<()> {
+    pub fn reconcile(&mut self, actual: &[MenuItemKind], incoming: &[Gd<KirieTrayItem>]) {
         for item in incoming {
-            let id = item.bind().native()?.id().0.clone();
+            let id = item.bind().native().id().0.clone();
             self.objects.insert(id, item.clone());
         }
         self.objects
             .retain(|id, _| actual.iter().any(|item| item.id().0 == *id));
-        Ok(())
     }
 
     pub fn get(&self, id: &str) -> Result<Gd<KirieTrayItem>> {
@@ -56,26 +51,22 @@ pub fn prepare(
                 .map_err(|error| Error::new("invalid-argument", error))
         })
         .collect::<Result<Vec<_>>>()?;
-    let native = prepare_objects(&objects, owner)?;
+    // A mutation can refer to its already-bound owner; a constructor cannot.
+    if objects.iter().any(|item| item.instance_id() == owner) {
+        return Err(Error::new(
+            "invalid-argument",
+            "a menu item cannot contain itself",
+        ));
+    }
+    let native = prepare_objects(&objects);
     Ok((objects, native))
 }
 
-pub fn prepare_objects(
-    objects: &[Gd<KirieTrayItem>],
-    owner: InstanceId,
-) -> Result<Vec<MenuItemKind>> {
-    let mut native = Vec::with_capacity(objects.len());
-    for item in objects {
-        // Check identity before borrowing: the owner may already be bound by its exported method.
-        if item.instance_id() == owner {
-            return Err(Error::new(
-                "invalid-argument",
-                "a menu item cannot contain itself",
-            ));
-        }
-        native.push(item.bind().native()?.clone());
-    }
-    Ok(native)
+pub fn prepare_objects(objects: &[Gd<KirieTrayItem>]) -> Vec<MenuItemKind> {
+    objects
+        .iter()
+        .map(|item| item.bind().native().clone())
+        .collect()
 }
 
 pub fn as_item(item: &MenuItemKind) -> &dyn IsMenuItem {

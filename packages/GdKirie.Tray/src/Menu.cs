@@ -24,7 +24,7 @@ public interface IMenuContainer
 public sealed class Menu : TrayObject, IMenuContainer
 {
     /// <summary>Creates a menu with optional initial children.</summary>
-    public Menu(MenuOptions? options = null) : base(Create("KirieTrayMenu", "initialize", NativeValues.Menu(options ?? new())), "menu") { }
+    public Menu(MenuOptions? options = null) : base(Create("KirieTrayMenu", "create", NativeValues.Menu(options ?? new())), "menu") { }
     internal Menu(RefCounted native) : base(native, "menu") { }
 
     /// <summary>New references to the current native children in menu order. Dispose each returned reference.</summary>
@@ -79,7 +79,7 @@ public abstract class EnabledMenuEntry : MenuEntry
 public sealed class Submenu : EnabledMenuEntry, IMenuContainer
 {
     /// <summary>Creates a native Submenu with the supplied options.</summary>
-    public Submenu(SubmenuOptions options) : base(Create("KirieTrayItem", "initialize_submenu", NativeValues.Submenu(options)), "submenu") { }
+    public Submenu(SubmenuOptions options) : base(Create("KirieTrayItem", "create_submenu", NativeValues.Submenu(options)), "submenu") { }
     internal Submenu(RefCounted native) : base(native, "submenu") { }
 
     /// <summary>New references to the current native children in menu order. Dispose each returned reference.</summary>

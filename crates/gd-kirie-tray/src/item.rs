@@ -9,71 +9,65 @@ use tray_icon::menu::{
 };
 
 #[derive(GodotClass)]
-#[class(init, base=RefCounted)]
+#[class(no_init, base=RefCounted)]
 pub struct KirieTrayItem {
-    item: Option<MenuItemKind>,
+    item: MenuItemKind,
     children: Children,
     godot: Base<RefCounted>,
 }
 
 impl KirieTrayItem {
-    pub fn native(&self) -> Result<&MenuItemKind> {
-        self.item
-            .as_ref()
-            .ok_or_else(|| Error::new("native-error", "menu item is not initialized"))
+    pub fn native(&self) -> &MenuItemKind {
+        &self.item
     }
 
-    fn uninitialized(&self) -> Result<()> {
-        if self.item.is_some() {
-            return Err(Error::new(
-                "native-error",
-                "menu item is already initialized",
-            ));
-        }
-        Ok(())
+    fn wrap(item: MenuItemKind, children: Children) -> Gd<Self> {
+        Gd::from_init_fn(|godot| Self {
+            item,
+            children,
+            godot,
+        })
     }
 
     fn submenu(&self) -> Result<&Submenu> {
-        match self.native()? {
+        match self.native() {
             MenuItemKind::Submenu(menu) => Ok(menu),
             _ => Err(Error::new("invalid-argument", "item must be a submenu")),
         }
     }
 
-    fn finish(&mut self, item: MenuItemKind, options: ItemOptions) -> Result<()> {
+    fn finish(item: MenuItemKind, options: ItemOptions) -> Result<Gd<Self>> {
         if options.accelerator.is_some() {
             set_accelerator(&item, options.accelerator)?;
         }
         if options.icon.is_some() || options.icon_as_template {
             icons::set_item(&item, options.icon, options.icon_as_template)?;
         }
+        let mut children = Children::default();
         if let MenuItemKind::Submenu(submenu) = &item {
-            self.children.reconcile(&submenu.items(), &options.items)?;
+            children.reconcile(&submenu.items(), &options.items);
         }
-        self.item = Some(item);
-        Ok(())
+        Ok(Self::wrap(item, children))
     }
 }
 
 #[godot_api]
 impl KirieTrayItem {
     #[func]
-    fn initialize_item(&mut self, options: VarDictionary) -> VarDictionary {
+    fn create_item(options: VarDictionary) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let options = ItemOptions::read(&options)?;
             let item = match options.id.as_deref() {
                 Some(id) => MenuItem::with_id(id, &options.text, options.enabled, None),
                 None => MenuItem::new(&options.text, options.enabled, None),
             };
-            self.finish(MenuItemKind::MenuItem(item), options)
+            Self::finish(MenuItemKind::MenuItem(item), options)
         })
     }
 
     #[func]
-    fn initialize_check(&mut self, options: VarDictionary) -> VarDictionary {
+    fn create_check(options: VarDictionary) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let options = ItemOptions::read(&options)?;
             let item = match options.id.as_deref() {
                 Some(id) => CheckMenuItem::with_id(
@@ -85,397 +79,369 @@ impl KirieTrayItem {
                 ),
                 None => CheckMenuItem::new(&options.text, options.enabled, options.checked, None),
             };
-            self.finish(MenuItemKind::Check(item), options)
+            Self::finish(MenuItemKind::Check(item), options)
         })
     }
 
     #[func]
-    fn initialize_icon(&mut self, options: VarDictionary) -> VarDictionary {
+    fn create_icon(options: VarDictionary) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let options = ItemOptions::read(&options)?;
             let item = match options.id.as_deref() {
                 Some(id) => IconMenuItem::with_id(id, &options.text, options.enabled, None, None),
                 None => IconMenuItem::new(&options.text, options.enabled, None, None),
             };
-            self.finish(MenuItemKind::Icon(item), options)
+            Self::finish(MenuItemKind::Icon(item), options)
         })
     }
 
     #[func]
-    fn initialize_submenu(&mut self, options: VarDictionary) -> VarDictionary {
+    fn create_submenu(options: VarDictionary) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let options = ItemOptions::read(&options)?;
-            let native = ownership::prepare_objects(&options.items, self.base().instance_id())?;
+            let native = ownership::prepare_objects(&options.items);
             let item = match options.id.as_deref() {
                 Some(id) => Submenu::with_id(id, &options.text, options.enabled),
                 None => Submenu::new(&options.text, options.enabled),
             };
             item.append_items(&native.iter().map(ownership::as_item).collect::<Vec<_>>())?;
-            self.finish(MenuItemKind::Submenu(item), options)
+            Self::finish(MenuItemKind::Submenu(item), options)
         })
     }
 
     #[func]
-    fn initialize_separator(&mut self) -> VarDictionary {
+    fn separator() -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::separator()));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::separator()),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_section_header(&mut self, text: GString) -> VarDictionary {
+    fn section_header(text: GString) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::section_header(&text.to_string()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::section_header(&text.to_string())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_copy(&mut self, text: Variant) -> VarDictionary {
+    fn copy(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::copy(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::copy(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_cut(&mut self, text: Variant) -> VarDictionary {
+    fn cut(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::cut(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::cut(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_paste(&mut self, text: Variant) -> VarDictionary {
+    fn paste(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::paste(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::paste(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_paste_and_match_style(&mut self, text: Variant) -> VarDictionary {
+    fn paste_and_match_style(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::paste_and_match_style(text.as_deref()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::paste_and_match_style(
+                    text.as_deref(),
+                )),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_delete(&mut self, text: Variant) -> VarDictionary {
+    fn delete(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::delete(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::delete(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_select_all(&mut self, text: Variant) -> VarDictionary {
+    fn select_all(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::select_all(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::select_all(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_undo(&mut self, text: Variant) -> VarDictionary {
+    fn undo(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::undo(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::undo(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_redo(&mut self, text: Variant) -> VarDictionary {
+    fn redo(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::redo(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::redo(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_minimize(&mut self, text: Variant) -> VarDictionary {
+    fn minimize(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::minimize(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::minimize(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_maximize(&mut self, text: Variant) -> VarDictionary {
+    fn maximize(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::maximize(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::maximize(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_zoom(&mut self, text: Variant) -> VarDictionary {
+    fn zoom(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::zoom(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_actual_size(&mut self, text: Variant) -> VarDictionary {
+    fn actual_size(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::actual_size(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::actual_size(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_zoom_in(&mut self, text: Variant) -> VarDictionary {
+    fn zoom_in(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom_in(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::zoom_in(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_zoom_out(&mut self, text: Variant) -> VarDictionary {
+    fn zoom_out(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom_out(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::zoom_out(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_fullscreen(&mut self, text: Variant) -> VarDictionary {
+    fn fullscreen(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::fullscreen(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::fullscreen(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_hide(&mut self, text: Variant) -> VarDictionary {
+    fn hide(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::hide(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::hide(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_hide_others(&mut self, text: Variant) -> VarDictionary {
+    fn hide_others(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::hide_others(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::hide_others(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_show_all(&mut self, text: Variant) -> VarDictionary {
+    fn show_all(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::show_all(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::show_all(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_close_window(&mut self, text: Variant) -> VarDictionary {
+    fn close_window(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::close_window(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::close_window(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_quit(&mut self, text: Variant) -> VarDictionary {
+    fn quit(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::quit(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::quit(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_services(&mut self, text: Variant) -> VarDictionary {
+    fn services(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::services(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::services(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_bring_all_to_front(&mut self, text: Variant) -> VarDictionary {
+    fn bring_all_to_front(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::bring_all_to_front(text.as_deref()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::bring_all_to_front(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_start_speaking(&mut self, text: Variant) -> VarDictionary {
+    fn start_speaking(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::start_speaking(text.as_deref()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::start_speaking(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_stop_speaking(&mut self, text: Variant) -> VarDictionary {
+    fn stop_speaking(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::stop_speaking(
-                text.as_deref(),
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::stop_speaking(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_start_dictation(&mut self, text: Variant) -> VarDictionary {
+    fn start_dictation(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::start_dictation(text.as_deref()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::start_dictation(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_emoji_and_symbols(&mut self, text: Variant) -> VarDictionary {
+    fn emoji_and_symbols(text: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.item = Some(MenuItemKind::Predefined(
-                PredefinedMenuItem::emoji_and_symbols(text.as_deref()),
-            ));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::emoji_and_symbols(text.as_deref())),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
-    fn initialize_about(&mut self, text: Variant, metadata: Variant) -> VarDictionary {
+    fn about(text: Variant, metadata: Variant) -> VarDictionary {
         reply(|| {
-            self.uninitialized()?;
             let text = types::nullable_string(&text)?;
             let metadata = if metadata.is_nil() {
                 None
             } else {
                 Some(types::about_metadata(&metadata.try_to::<VarDictionary>()?)?)
             };
-            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::about(
-                text.as_deref(),
-                metadata,
-            )));
-            Ok(())
+            Ok(Self::wrap(
+                MenuItemKind::Predefined(PredefinedMenuItem::about(text.as_deref(), metadata)),
+                Children::default(),
+            ))
         })
     }
 
     #[func]
     fn id(&self) -> VarDictionary {
-        reply(|| Ok(GString::from(self.native()?.id().0.as_str())))
+        reply(|| Ok(GString::from(self.native().id().0.as_str())))
     }
 
     #[func]
     fn kind(&self) -> VarDictionary {
         reply(|| {
-            Ok(GString::from(match self.native()? {
+            Ok(GString::from(match self.native() {
                 MenuItemKind::MenuItem(_) => "item",
                 MenuItemKind::Check(_) => "check",
                 MenuItemKind::Icon(_) => "icon",
@@ -487,31 +453,31 @@ impl KirieTrayItem {
 
     #[func]
     fn text(&self) -> VarDictionary {
-        reply(|| Ok(GString::from(item_text(self.native()?).as_str())))
+        reply(|| Ok(GString::from(item_text(self.native()).as_str())))
     }
 
     #[func]
     fn set_text(&self, text: GString) -> VarDictionary {
         reply(|| {
-            set_text(self.native()?, &text.to_string());
+            set_text(self.native(), &text.to_string());
             Ok(())
         })
     }
 
     #[func]
     fn is_enabled(&self) -> VarDictionary {
-        reply(|| is_enabled(self.native()?))
+        reply(|| is_enabled(self.native()))
     }
 
     #[func]
     fn set_enabled(&self, enabled: bool) -> VarDictionary {
-        reply(|| set_enabled(self.native()?, enabled))
+        reply(|| set_enabled(self.native(), enabled))
     }
 
     #[func]
     fn is_checked(&self) -> VarDictionary {
         reply(|| {
-            let MenuItemKind::Check(item) = self.native()? else {
+            let MenuItemKind::Check(item) = self.native() else {
                 return Err(Error::new("invalid-argument", "item must be a check item"));
             };
             Ok(item.is_checked())
@@ -521,7 +487,7 @@ impl KirieTrayItem {
     #[func]
     fn set_checked(&self, checked: bool) -> VarDictionary {
         reply(|| {
-            let MenuItemKind::Check(item) = self.native()? else {
+            let MenuItemKind::Check(item) = self.native() else {
                 return Err(Error::new("invalid-argument", "item must be a check item"));
             };
             item.set_checked(checked);
@@ -531,18 +497,18 @@ impl KirieTrayItem {
 
     #[func]
     fn set_accelerator(&self, accelerator: Variant) -> VarDictionary {
-        reply(|| set_accelerator(self.native()?, Accelerator::read(&accelerator)?))
+        reply(|| set_accelerator(self.native(), Accelerator::read(&accelerator)?))
     }
 
     #[func]
     fn set_icon(&self, icon: Variant, icon_as_template: bool) -> VarDictionary {
-        reply(|| icons::set_item(self.native()?, IconSource::read(&icon)?, icon_as_template))
+        reply(|| icons::set_item(self.native(), IconSource::read(&icon)?, icon_as_template))
     }
 
     #[func]
     fn icon_is_template(&self) -> VarDictionary {
         reply(|| {
-            let item = self.native()?;
+            let item = self.native();
             if !matches!(item, MenuItemKind::Icon(_) | MenuItemKind::Submenu(_)) {
                 return Err(Error::new(
                     "invalid-argument",
@@ -576,7 +542,7 @@ impl KirieTrayItem {
             let submenu = self.submenu()?.clone();
             let result =
                 submenu.append_items(&native.iter().map(ownership::as_item).collect::<Vec<_>>());
-            self.children.reconcile(&submenu.items(), &objects)?;
+            self.children.reconcile(&submenu.items(), &objects);
             result.map_err(Into::into)
         })
     }
@@ -588,7 +554,7 @@ impl KirieTrayItem {
             let submenu = self.submenu()?.clone();
             let result =
                 submenu.prepend_items(&native.iter().map(ownership::as_item).collect::<Vec<_>>());
-            self.children.reconcile(&submenu.items(), &objects)?;
+            self.children.reconcile(&submenu.items(), &objects);
             result.map_err(Into::into)
         })
     }
@@ -609,7 +575,7 @@ impl KirieTrayItem {
                 &native.iter().map(ownership::as_item).collect::<Vec<_>>(),
                 position,
             );
-            self.children.reconcile(&submenu.items(), &objects)?;
+            self.children.reconcile(&submenu.items(), &objects);
             result.map_err(Into::into)
         })
     }
@@ -623,10 +589,10 @@ impl KirieTrayItem {
                     "a submenu cannot contain itself",
                 ));
             }
-            let native = item.bind().native()?.clone();
+            let native = item.bind().native().clone();
             let submenu = self.submenu()?.clone();
             let result = submenu.remove(ownership::as_item(&native));
-            self.children.reconcile(&submenu.items(), &[])?;
+            self.children.reconcile(&submenu.items(), &[]);
             result.map_err(Into::into)
         })
     }
@@ -639,7 +605,7 @@ impl KirieTrayItem {
             let removed = removed
                 .map(|item| self.children.get(&item.id().0))
                 .transpose()?;
-            self.children.reconcile(&submenu.items(), &[])?;
+            self.children.reconcile(&submenu.items(), &[]);
             Ok(removed
                 .map(|item| item.to_variant())
                 .unwrap_or_else(Variant::nil))

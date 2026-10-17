@@ -52,6 +52,9 @@ The `using` declarations keep these objects alive until the enclosing scope ends
 For application lifetime, store them in application fields and call `Dispose` during shutdown.
 
 `Menu`, `Submenu`, `MenuItem`, `CheckMenuItem`, `IconMenuItem`, and `PredefinedMenuItem` wrap actual native objects.
+Native factories construct each upstream object before they return its Godot wrapper.
+Every returned wrapper is ready for use. Native construction errors throw `TrayException`.
+C# constructors and predefined item methods keep the same signatures.
 
 `Menu` and `Submenu` implement `IMenuContainer`.
 Both support `Items`, `Append`, `Prepend`, `Insert`, `Remove`, and `RemoveAt`.

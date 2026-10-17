@@ -43,7 +43,7 @@ public abstract class TrayObject : IDisposable
         }
     }
 
-    internal static RefCounted Create(string className, string initializer, params Variant[] arguments)
+    internal static RefCounted Create(string className, string factory, params Variant[] arguments)
     {
         try
         {
@@ -54,18 +54,10 @@ public abstract class TrayObject : IDisposable
                 throw new InvalidOperationException("The Kirie Tray GDExtension is not loaded. Install the @gd-kirie/tray plugin assets.");
             }
 
-            using var instance = ClassDB.Instantiate(name);
-            var native = (RefCounted)instance.AsGodotObject();
-            try
-            {
-                using var value = CallNative(native, initializer, arguments);
-                return native;
-            }
-            catch
-            {
-                native.Dispose();
-                throw;
-            }
+            using var method = new StringName(factory);
+            using var result = ClassDB.ClassCallStatic(name, method, arguments);
+            using var value = ReadReply(result);
+            return (RefCounted)value.AsGodotObject();
         }
         finally
         {
@@ -101,6 +93,11 @@ public abstract class TrayObject : IDisposable
     {
         using var methodName = new StringName(method);
         using var result = native.Call(methodName, arguments);
+        return ReadReply(result);
+    }
+
+    private static Variant ReadReply(Variant result)
+    {
         using var reply = result.AsGodotDictionary();
         if (!reply["ok"].AsBool())
         {

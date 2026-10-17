@@ -6,7 +6,7 @@ namespace GdKirie.Tray;
 public sealed class TrayIcon : TrayObject
 {
     /// <summary>Creates a native TrayIcon with the supplied options.</summary>
-    public TrayIcon(TrayOptions? options = null) : base(Create("KirieTrayIcon", "initialize", NativeValues.Tray(options ?? new())), "tray") { }
+    public TrayIcon(TrayOptions? options = null) : base(Create("KirieTrayIcon", "create", NativeValues.Tray(options ?? new())), "tray") { }
     internal TrayIcon(RefCounted native) : base(native, "tray") { }
 
     /// <summary>Sets or clears the icon. Platform support follows upstream.</summary>

@@ -23,11 +23,17 @@ It retains the native dependencies and GDExtension distribution.
 Keep explicit methods that convert arguments and call upstream operations.
 Expose each public upstream predefined-item constructor as a separate operation.
 Do not expose the private upstream action type through a Kirie enum or a `kind` selector.
-C# static methods, browser methods, and native initializers call the corresponding upstream constructor.
+C# static methods, browser methods, and native factories call the corresponding upstream constructor.
 Use the upstream Serde implementation for public `NativeIcon` variant names instead of a separate name table.
 
 Native objects remain the source of state. Preserve upstream defaults, errors,
 and platform differences; do not emulate unsupported behavior.
+
+Construct each upstream object before its Godot wrapper.
+`KirieTrayItem`, `KirieTrayMenu`, and `KirieTrayIcon` use `#[class(no_init)]` and expose static factories.
+Their native fields hold complete values directly, without an uninitialized `Option` state.
+C# constructors call these factories through `ClassDB.ClassCallStatic`.
+Construction errors return through the existing reply format before a wrapper exists.
 
 Each C# wrapper owns an independent native reference. Menu queries return new
 references, without a managed identity cache. Dispose releases only that
