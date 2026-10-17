@@ -79,7 +79,7 @@ Getters and setters operate on native state. C# applications can also use the
 | `IconMenuItem` | Menu item operations, icon, template status |
 | `PredefinedMenuItem` | Upstream predefined actions, text, About metadata at creation |
 
-Creation methods accept builder options in one call. Tray options include menu,
+Tray and regular menu creation methods accept builder options in one call. Tray options include menu,
 icon, template mode, tooltip, title, click policy, GUID, autosave name, and temporary directory.
 Platform restrictions also apply to creation options.
 
@@ -90,6 +90,21 @@ array, not a `Uint8Array` object.
 
 Accelerators use `{ kind: "physical" | "logical", value: string }`. Upstream
 `Accelerator` or `KeyAccelerator` parses the string.
+
+Predefined items use the public upstream constructors through `client.predefined`:
+
+```ts
+const copy = await client.predefined.copy();
+const paste = await client.predefined.paste("Paste");
+const separator = await client.predefined.separator();
+const section = await client.predefined.sectionHeader("Actions");
+const about = await client.predefined.about(null, { name: "My application" });
+```
+
+Each constructor has its own Eventa method. No action selector is necessary.
+A null or omitted text uses the upstream default. An empty string remains empty.
+`sectionHeader` requires text. `separator` has no arguments.
+`about` accepts optional text and About metadata.
 
 ## Events and ownership
 

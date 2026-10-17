@@ -13,7 +13,35 @@ internal enum TrayMethod
     ItemCreate,
     CheckCreate,
     IconCreate,
-    PredefinedCreate,
+    PredefinedSeparator,
+    PredefinedSectionHeader,
+    PredefinedCopy,
+    PredefinedCut,
+    PredefinedPaste,
+    PredefinedPasteAndMatchStyle,
+    PredefinedDelete,
+    PredefinedSelectAll,
+    PredefinedUndo,
+    PredefinedRedo,
+    PredefinedMinimize,
+    PredefinedMaximize,
+    PredefinedZoom,
+    PredefinedActualSize,
+    PredefinedZoomIn,
+    PredefinedZoomOut,
+    PredefinedFullscreen,
+    PredefinedHide,
+    PredefinedHideOthers,
+    PredefinedShowAll,
+    PredefinedCloseWindow,
+    PredefinedQuit,
+    PredefinedServices,
+    PredefinedBringAllToFront,
+    PredefinedStartSpeaking,
+    PredefinedStopSpeaking,
+    PredefinedStartDictation,
+    PredefinedEmojiAndSymbols,
+    PredefinedAbout,
     TraySetIcon,
     TraySetMenu,
     TraySetTooltip,
@@ -93,7 +121,10 @@ internal sealed record FailureReply(RemoteError Error)
 [JsonSerializable(typeof(ItemCreateRequest))]
 [JsonSerializable(typeof(CheckCreateRequest))]
 [JsonSerializable(typeof(IconCreateRequest))]
-[JsonSerializable(typeof(PredefinedCreateRequest))]
+[JsonSerializable(typeof(EmptyRequest))]
+[JsonSerializable(typeof(PredefinedSectionHeaderRequest))]
+[JsonSerializable(typeof(PredefinedTextRequest))]
+[JsonSerializable(typeof(PredefinedAboutRequest))]
 [JsonSerializable(typeof(IconRequest))]
 [JsonSerializable(typeof(MenuRequest))]
 [JsonSerializable(typeof(TooltipRequest))]

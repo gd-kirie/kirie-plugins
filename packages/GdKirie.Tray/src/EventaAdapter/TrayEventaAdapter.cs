@@ -130,15 +130,64 @@ public sealed class TrayEventaAdapter : IDisposable
                 IconAsTemplate = options.IconAsTemplate,
             }));
         });
-        Register(TrayMethod.PredefinedCreate, json.PredefinedCreateRequest, request =>
-        {
-            var options = request.Options;
-            return Bind(new PredefinedMenuItem(new PredefinedMenuItemOptions(options.Kind)
-            {
-                Text = options.Text,
-                Metadata = options.Metadata?.ToSdk(),
-            }));
-        });
+        Register(TrayMethod.PredefinedSeparator, json.EmptyRequest,
+            _ => Bind(PredefinedMenuItem.Separator()));
+        Register(TrayMethod.PredefinedSectionHeader, json.PredefinedSectionHeaderRequest,
+            request => Bind(PredefinedMenuItem.SectionHeader(request.Text)));
+        Register(TrayMethod.PredefinedCopy, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Copy(request.Text)));
+        Register(TrayMethod.PredefinedCut, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Cut(request.Text)));
+        Register(TrayMethod.PredefinedPaste, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Paste(request.Text)));
+        Register(TrayMethod.PredefinedPasteAndMatchStyle, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.PasteAndMatchStyle(request.Text)));
+        Register(TrayMethod.PredefinedDelete, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Delete(request.Text)));
+        Register(TrayMethod.PredefinedSelectAll, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.SelectAll(request.Text)));
+        Register(TrayMethod.PredefinedUndo, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Undo(request.Text)));
+        Register(TrayMethod.PredefinedRedo, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Redo(request.Text)));
+        Register(TrayMethod.PredefinedMinimize, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Minimize(request.Text)));
+        Register(TrayMethod.PredefinedMaximize, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Maximize(request.Text)));
+        Register(TrayMethod.PredefinedZoom, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Zoom(request.Text)));
+        Register(TrayMethod.PredefinedActualSize, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.ActualSize(request.Text)));
+        Register(TrayMethod.PredefinedZoomIn, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.ZoomIn(request.Text)));
+        Register(TrayMethod.PredefinedZoomOut, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.ZoomOut(request.Text)));
+        Register(TrayMethod.PredefinedFullscreen, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Fullscreen(request.Text)));
+        Register(TrayMethod.PredefinedHide, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Hide(request.Text)));
+        Register(TrayMethod.PredefinedHideOthers, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.HideOthers(request.Text)));
+        Register(TrayMethod.PredefinedShowAll, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.ShowAll(request.Text)));
+        Register(TrayMethod.PredefinedCloseWindow, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.CloseWindow(request.Text)));
+        Register(TrayMethod.PredefinedQuit, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Quit(request.Text)));
+        Register(TrayMethod.PredefinedServices, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.Services(request.Text)));
+        Register(TrayMethod.PredefinedBringAllToFront, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.BringAllToFront(request.Text)));
+        Register(TrayMethod.PredefinedStartSpeaking, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.StartSpeaking(request.Text)));
+        Register(TrayMethod.PredefinedStopSpeaking, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.StopSpeaking(request.Text)));
+        Register(TrayMethod.PredefinedStartDictation, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.StartDictation(request.Text)));
+        Register(TrayMethod.PredefinedEmojiAndSymbols, json.PredefinedTextRequest,
+            request => Bind(PredefinedMenuItem.EmojiAndSymbols(request.Text)));
+        Register(TrayMethod.PredefinedAbout, json.PredefinedAboutRequest,
+            request => Bind(PredefinedMenuItem.About(request.Text, request.Metadata?.ToSdk())));
 
         Register(TrayMethod.TraySetIcon, json.IconRequest,
             request => Get<TrayIcon>(request.Handle).SetIcon(request.Icon?.ToSdk(), request.IconAsTemplate));

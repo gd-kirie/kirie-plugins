@@ -21,6 +21,10 @@ It retains the native dependencies and GDExtension distribution.
 ## Decision
 
 Keep explicit methods that convert arguments and call upstream operations.
+Expose each public upstream predefined-item constructor as a separate operation.
+Do not expose the private upstream action type through a Kirie enum or a `kind` selector.
+C# static methods, browser methods, and native initializers call the corresponding upstream constructor.
+
 Native objects remain the source of state. Preserve upstream defaults, errors,
 and platform differences; do not emulate unsupported behavior.
 
@@ -59,6 +63,7 @@ The adapter keeps its public types and namespace within that assembly.
 
 ## Implementation
 
+- [Rust GDExtension](../../crates/gd-kirie-tray/) belongs to the root Cargo workspace.
 - [C# wrappers](../../packages/GdKirie.Tray/src/) expose native tray and menu objects.
 - [Eventa integration](../../packages/GdKirie.Tray/src/EventaAdapter/) registers browser methods and manages browser references.
 - [Plugin descriptor](../../packages/tray/src/plugin.ts) installs GdKirie.Tray and the native addon.

@@ -97,6 +97,32 @@ describe("tray objects over Eventa", () => {
     expect(native.calls).toContainEqual({ wire: "kirie:tray:tray-set-icon", args: { handle: tray.handle, icon: null, iconAsTemplate: false } });
   });
 
+  it("calls predefined constructors with upstream argument shapes and preserves text defaults", async () => {
+    const resource: Resource = { handle: "h-predefined", id: "native-id", kind: "predefined" };
+    const native = host(() => ({ ok: true, value: resource }));
+    const client = createTrayClient(native.context);
+    const item = await client.predefined.copy();
+    await client.predefined.copy(null);
+    await client.predefined.copy("");
+    await client.predefined.pasteAndMatchStyle("Paste without formatting");
+    await client.predefined.separator();
+    await client.predefined.sectionHeader("Actions");
+    await client.predefined.about();
+    await client.predefined.about(null, { name: "My application", authors: ["Author"] });
+    expect(item).toBeInstanceOf(PredefinedMenuItem);
+    expect(item.id).toBe("native-id");
+    expect(native.calls).toEqual([
+      { wire: "kirie:tray:predefined-copy", args: {} },
+      { wire: "kirie:tray:predefined-copy", args: { text: null } },
+      { wire: "kirie:tray:predefined-copy", args: { text: "" } },
+      { wire: "kirie:tray:predefined-paste-and-match-style", args: { text: "Paste without formatting" } },
+      { wire: "kirie:tray:predefined-separator", args: {} },
+      { wire: "kirie:tray:predefined-section-header", args: { text: "Actions" } },
+      { wire: "kirie:tray:predefined-about", args: {} },
+      { wire: "kirie:tray:predefined-about", args: { text: null, metadata: { name: "My application", authors: ["Author"] } } },
+    ]);
+  });
+
   it("wraps application descriptors locally as their concrete object kinds", () => {
     const resources: Resource[] = [
       tray,

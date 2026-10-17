@@ -49,8 +49,19 @@ Both can be attached to a `TrayIcon`.
 
 `IconSource` distinguishes Godot textures, RGBA pixels, native icons, and Windows icon sources.
 `Accelerator.Physical` and `Accelerator.Logical` preserve the two upstream keyboard accelerator types.
-`PredefinedMenuItemKind` selects an upstream action.
-`AboutMetadata` supplies the About item metadata.
+`PredefinedMenuItem` exposes the public upstream constructors as static methods:
+
+```csharp
+using var copy = PredefinedMenuItem.Copy();
+using var paste = PredefinedMenuItem.Paste("Paste");
+using var separator = PredefinedMenuItem.Separator();
+using var section = PredefinedMenuItem.SectionHeader("Actions");
+using var about = PredefinedMenuItem.About(metadata: new() { Name = "My application" });
+```
+
+A null or omitted text uses the upstream default. An empty string remains empty.
+`SectionHeader` requires text. `Separator` has no arguments.
+`About` accepts optional text and `AboutMetadata`.
 Platform support follows upstream. Operations the current backend cannot perform
 either have no effect or throw `TrayException` with the native error.
 

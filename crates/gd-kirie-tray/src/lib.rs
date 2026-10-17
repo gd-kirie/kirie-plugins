@@ -4,7 +4,6 @@ mod icons;
 mod item;
 mod menu;
 mod ownership;
-mod predefined;
 mod tray;
 mod types;
 

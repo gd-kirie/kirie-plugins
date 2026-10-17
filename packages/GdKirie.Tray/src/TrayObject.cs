@@ -43,27 +43,36 @@ public abstract class TrayObject : IDisposable
         }
     }
 
-    internal static RefCounted Create(string className, string initializer, Variant options)
+    internal static RefCounted Create(string className, string initializer, params Variant[] arguments)
     {
-        EnsureMainThread();
-        using var ownedOptions = options;
-        using var name = new StringName(className);
-        if (!ClassDB.ClassExists(name))
-        {
-            throw new InvalidOperationException("The Kirie Tray GDExtension is not loaded. Install the @gd-kirie/tray plugin assets.");
-        }
-
-        using var instance = ClassDB.Instantiate(name);
-        var native = (RefCounted)instance.AsGodotObject();
         try
         {
-            using var value = CallNative(native, initializer, options);
-            return native;
+            EnsureMainThread();
+            using var name = new StringName(className);
+            if (!ClassDB.ClassExists(name))
+            {
+                throw new InvalidOperationException("The Kirie Tray GDExtension is not loaded. Install the @gd-kirie/tray plugin assets.");
+            }
+
+            using var instance = ClassDB.Instantiate(name);
+            var native = (RefCounted)instance.AsGodotObject();
+            try
+            {
+                using var value = CallNative(native, initializer, arguments);
+                return native;
+            }
+            catch
+            {
+                native.Dispose();
+                throw;
+            }
         }
-        catch
+        finally
         {
-            native.Dispose();
-            throw;
+            foreach (var argument in arguments)
+            {
+                argument.Dispose();
+            }
         }
     }
 

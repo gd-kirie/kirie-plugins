@@ -43,14 +43,15 @@ jobs:
           install_args: --locked node rust clang
           cache: true
 
-      - name: Build Tray GDExtension
+      - name: Build and assemble Tray addon
         run: mise run build:tray-native
 
-      - name: Upload Tray GDExtension
+      - name: Upload Tray addon
         uses: actions/upload-artifact@v7
         with:
           name: tray-native-${{ matrix.runner }}
-          path: packages/GdKirie.Tray/native/artifacts
+          path: packages/tray/addon
+          include-hidden-files: true
           if-no-files-found: error
 
   packages:
@@ -85,25 +86,28 @@ jobs:
       - name: Typecheck packages
         run: mise run typecheck
 
-      - name: Download Tray GDExtensions
-        uses: actions/download-artifact@v8
-        with:
-          pattern: tray-native-*
-          path: packages/GdKirie.Tray/native/artifacts
-          merge-multiple: true
-
       - name: Build packages
         run: mise run build:packages
 
+      - name: Download Tray addons
+        uses: actions/download-artifact@v8
+        with:
+          pattern: tray-native-*
+          path: packages/tray/addon
+          merge-multiple: true
+
       - name: Verify bundled Tray GDExtensions
         run: |
+          test -f packages/tray/addon/.gdignore
+          test -s packages/tray/addon/kirie_tray/kirie_tray.gdextension
+          test -s packages/tray/addon/kirie_tray/plugin.cfg
           for asset in \
-            linux-x64/libkirie_tray_native.so \
-            linux-arm64/libkirie_tray_native.so \
-            osx-x64/libkirie_tray_native.dylib \
-            osx-arm64/libkirie_tray_native.dylib \
-            win-x64/kirie_tray_native.dll \
-            win-arm64/kirie_tray_native.dll; do
+            x86_64-unknown-linux-gnu/libkirie_tray_native.so \
+            aarch64-unknown-linux-gnu/libkirie_tray_native.so \
+            x86_64-apple-darwin/libkirie_tray_native.dylib \
+            aarch64-apple-darwin/libkirie_tray_native.dylib \
+            x86_64-pc-windows-msvc/kirie_tray_native.dll \
+            aarch64-pc-windows-msvc/kirie_tray_native.dll; do
             test -s "packages/tray/addon/kirie_tray/bin/${asset}"
           done
 

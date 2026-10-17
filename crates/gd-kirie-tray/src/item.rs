@@ -1,11 +1,12 @@
 use crate::{
     events, icons,
     ownership::{self, Children},
-    predefined::predefined,
     types::{self, Accelerator, Error, IconSource, ItemOptions, Result, reply},
 };
 use godot::prelude::*;
-use tray_icon::menu::{CheckMenuItem, IconMenuItem, MenuItem, MenuItemKind, Submenu};
+use tray_icon::menu::{
+    CheckMenuItem, IconMenuItem, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu,
+};
 
 #[derive(GodotClass)]
 #[class(init, base=RefCounted)]
@@ -134,19 +135,323 @@ impl KirieTrayItem {
     }
 
     #[func]
-    fn initialize_predefined(&mut self, options: VarDictionary) -> VarDictionary {
+    fn initialize_separator(&mut self) -> VarDictionary {
         reply(|| {
             self.uninitialized()?;
-            let kind = types::required::<String>(&options, "kind")?;
-            let text = types::optional_string(&options, "text")?;
-            let metadata = types::optional::<VarDictionary>(&options, "metadata")?
-                .map(|dictionary| types::about_metadata(&dictionary))
-                .transpose()?;
-            self.attach(MenuItemKind::Predefined(predefined(
-                &kind,
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::separator()))
+        })
+    }
+
+    #[func]
+    fn initialize_section_header(&mut self, text: GString) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::section_header(&text.to_string()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_copy(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::copy(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_cut(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::cut(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_paste(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::paste(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_paste_and_match_style(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::paste_and_match_style(text.as_deref()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_delete(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::delete(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_select_all(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::select_all(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_undo(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::undo(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_redo(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::redo(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_minimize(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::minimize(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_maximize(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::maximize(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_zoom(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_actual_size(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::actual_size(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_zoom_in(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom_in(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_zoom_out(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom_out(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_fullscreen(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::fullscreen(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_hide(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::hide(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_hide_others(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::hide_others(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_show_all(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::show_all(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_close_window(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::close_window(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_quit(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::quit(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_services(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::services(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_bring_all_to_front(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::bring_all_to_front(text.as_deref()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_start_speaking(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::start_speaking(text.as_deref()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_stop_speaking(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::stop_speaking(
+                text.as_deref(),
+            )))
+        })
+    }
+
+    #[func]
+    fn initialize_start_dictation(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::start_dictation(text.as_deref()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_emoji_and_symbols(&mut self, text: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            self.attach(MenuItemKind::Predefined(
+                PredefinedMenuItem::emoji_and_symbols(text.as_deref()),
+            ))
+        })
+    }
+
+    #[func]
+    fn initialize_about(&mut self, text: Variant, metadata: Variant) -> VarDictionary {
+        reply(|| {
+            self.uninitialized()?;
+            let text = types::nullable_string(&text)?;
+            let metadata = if metadata.is_nil() {
+                None
+            } else {
+                Some(types::about_metadata(&metadata.try_to::<VarDictionary>()?)?)
+            };
+            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::about(
                 text.as_deref(),
                 metadata,
-            )?))
+            )))
         })
     }
 

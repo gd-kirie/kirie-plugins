@@ -30,9 +30,15 @@ mise run build:tray-native
 mise run build:packages
 ```
 
-Native output is staged in `packages/GdKirie.Tray/native/artifacts/<rid>`.
-The Tray package build copies it to `packages/tray/addon/kirie_tray/bin/<rid>`.
+The root Cargo workspace builds the Tray GDExtension from `crates/gd-kirie-tray`.
+Cargo writes native output to `target/<target-triple>/release/`.
+The native build copies the library directly to `packages/tray/addon/kirie_tray/bin/<target-triple>/` and assembles the addon metadata.
+The Tray npm build compiles the browser package. The native build owns addon assembly.
 These files are generated and stay outside Git.
+
+Each native CI job uploads its complete addon, including metadata and `.gdignore`.
+The publishing job builds the packages first, then downloads and merges the addons into `packages/tray/addon/`.
+It checks all six target directories before publishing.
 
 ## References
 

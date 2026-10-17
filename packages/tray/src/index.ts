@@ -1,5 +1,6 @@
 import type { KirieEventaContext } from "@gd-kirie/ipc-eventa";
 import type {
+  AboutMetadata,
   Accelerator,
   Arguments,
   CheckMenuItemOptions,
@@ -10,7 +11,6 @@ import type {
   MenuItemOptions,
   MethodName,
   NativeEvent,
-  PredefinedMenuItemOptions,
   Rect,
   Reply,
   Resource,
@@ -32,8 +32,6 @@ export type {
   MenuItemOptions,
   NativeEvent,
   Position,
-  PredefinedKind,
-  PredefinedMenuItemOptions,
   Rect,
   Resource,
   ResourceKind,
@@ -381,9 +379,67 @@ export class TrayClient {
     return new IconMenuItem(this.connection, await this.connection.request("icon.create", { options }));
   }
 
-  async createPredefinedMenuItem(options: PredefinedMenuItemOptions): Promise<PredefinedMenuItem> {
-    return new PredefinedMenuItem(this.connection, await this.connection.request("predefined.create", { options }));
-  }
+  /** Calls the public upstream PredefinedMenuItem constructors. */
+  readonly predefined = {
+    separator: async (): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.separator", {})),
+    sectionHeader: async (text: string): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.section-header", { text })),
+    copy: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.copy", { text })),
+    cut: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.cut", { text })),
+    paste: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.paste", { text })),
+    pasteAndMatchStyle: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.paste-and-match-style", { text })),
+    delete: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.delete", { text })),
+    selectAll: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.select-all", { text })),
+    undo: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.undo", { text })),
+    redo: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.redo", { text })),
+    minimize: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.minimize", { text })),
+    maximize: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.maximize", { text })),
+    zoom: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.zoom", { text })),
+    actualSize: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.actual-size", { text })),
+    zoomIn: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.zoom-in", { text })),
+    zoomOut: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.zoom-out", { text })),
+    fullscreen: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.fullscreen", { text })),
+    hide: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.hide", { text })),
+    hideOthers: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.hide-others", { text })),
+    showAll: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.show-all", { text })),
+    closeWindow: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.close-window", { text })),
+    quit: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.quit", { text })),
+    services: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.services", { text })),
+    bringAllToFront: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.bring-all-to-front", { text })),
+    startSpeaking: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.start-speaking", { text })),
+    stopSpeaking: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.stop-speaking", { text })),
+    startDictation: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.start-dictation", { text })),
+    emojiAndSymbols: async (text?: string | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.emoji-and-symbols", { text })),
+    about: async (text?: string | null, metadata?: AboutMetadata | null): Promise<PredefinedMenuItem> =>
+      new PredefinedMenuItem(this.connection, await this.connection.request("predefined.about", { text, metadata })),
+  };
 
   /** Wraps an application-provided descriptor without creating another native reference. */
   fromResource(resource: Resource): TrayResource {

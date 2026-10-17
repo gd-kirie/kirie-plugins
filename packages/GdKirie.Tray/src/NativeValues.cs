@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Godot;
 using Godot.Collections;
 using Array = Godot.Collections.Array;
@@ -161,20 +160,7 @@ internal static class NativeValues
         return result;
     }
 
-    internal static Variant Predefined(PredefinedMenuItemOptions options)
-    {
-        using var result = new Dictionary { ["kind"] = JsonNamingPolicy.SnakeCaseLower.ConvertName(options.Kind.ToString()) };
-        Add(result, "text", options.Text);
-        if (options.Metadata is not null)
-        {
-            using var metadata = Metadata(options.Metadata);
-            result["metadata"] = metadata;
-        }
-
-        return result;
-    }
-
-    private static Variant Metadata(AboutMetadata metadata)
+    internal static Variant Metadata(AboutMetadata metadata)
     {
         using var result = new Dictionary();
         Add(result, "name", metadata.Name);

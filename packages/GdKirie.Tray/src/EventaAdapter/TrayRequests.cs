@@ -10,7 +10,10 @@ internal sealed record SubmenuCreateRequest(RemoteSubmenuOptions Options);
 internal sealed record ItemCreateRequest(RemoteItemOptions Options);
 internal sealed record CheckCreateRequest(RemoteCheckOptions Options);
 internal sealed record IconCreateRequest(RemoteIconOptions Options);
-internal sealed record PredefinedCreateRequest(RemotePredefinedOptions Options);
+internal sealed record EmptyRequest;
+internal sealed record PredefinedSectionHeaderRequest(string Text);
+internal sealed record PredefinedTextRequest(string? Text = null);
+internal sealed record PredefinedAboutRequest(string? Text = null, RemoteAboutMetadata? Metadata = null);
 internal sealed record IconRequest(string Handle, RemoteIcon? Icon, bool IconAsTemplate = false);
 internal sealed record MenuRequest(string Handle, string? Menu);
 internal sealed record TooltipRequest(string Handle, string? Tooltip);
@@ -76,16 +79,6 @@ internal sealed record RemoteIconOptions(string Text) : RemoteItemOptions(Text)
     public RemoteIcon? Icon { get; init; }
     public bool IconAsTemplate { get; init; }
 }
-
-internal sealed record RemotePredefinedOptions(
-    [property: JsonConverter(typeof(PredefinedKindConverter))] PredefinedMenuItemKind Kind)
-{
-    public string? Text { get; init; }
-    public RemoteAboutMetadata? Metadata { get; init; }
-}
-
-internal sealed class PredefinedKindConverter() :
-    JsonStringEnumConverter<PredefinedMenuItemKind>(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false);
 
 internal sealed record RemoteAccelerator(string Kind, string Value)
 {

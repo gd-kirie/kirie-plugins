@@ -33,13 +33,6 @@ export interface AboutMetadata {
   icon?: IconSource | null;
 }
 
-export type PredefinedKind =
-  | "separator" | "section_header" | "copy" | "cut" | "paste" | "paste_and_match_style" |
-  "delete" | "select_all" | "undo" | "redo" | "minimize" | "maximize" | "zoom" |
-  "actual_size" | "zoom_in" | "zoom_out" | "fullscreen" | "hide" | "hide_others" |
-  "show_all" | "close_window" | "quit" | "about" | "services" | "bring_all_to_front" |
-  "start_speaking" | "stop_speaking" | "start_dictation" | "emoji_and_symbols";
-
 export interface TrayCreateOptions {
   id?: string;
   icon?: IconSource | null;
@@ -80,12 +73,6 @@ export interface CheckMenuItemOptions extends MenuItemOptions {
 export interface IconMenuItemOptions extends MenuItemOptions {
   icon?: IconSource | null;
   iconAsTemplate?: boolean;
-}
-
-export interface PredefinedMenuItemOptions {
-  kind: PredefinedKind;
-  text?: string | null;
-  metadata?: AboutMetadata;
 }
 
 export interface Position {
@@ -141,7 +128,35 @@ interface Methods {
   "item.create": { args: { options: MenuItemOptions }; result: Resource };
   "check.create": { args: { options: CheckMenuItemOptions }; result: Resource };
   "icon.create": { args: { options: IconMenuItemOptions }; result: Resource };
-  "predefined.create": { args: { options: PredefinedMenuItemOptions }; result: Resource };
+  "predefined.separator": { args: Record<string, never>; result: Resource };
+  "predefined.section-header": { args: { text: string }; result: Resource };
+  "predefined.copy": { args: { text?: string | null }; result: Resource };
+  "predefined.cut": { args: { text?: string | null }; result: Resource };
+  "predefined.paste": { args: { text?: string | null }; result: Resource };
+  "predefined.paste-and-match-style": { args: { text?: string | null }; result: Resource };
+  "predefined.delete": { args: { text?: string | null }; result: Resource };
+  "predefined.select-all": { args: { text?: string | null }; result: Resource };
+  "predefined.undo": { args: { text?: string | null }; result: Resource };
+  "predefined.redo": { args: { text?: string | null }; result: Resource };
+  "predefined.minimize": { args: { text?: string | null }; result: Resource };
+  "predefined.maximize": { args: { text?: string | null }; result: Resource };
+  "predefined.zoom": { args: { text?: string | null }; result: Resource };
+  "predefined.actual-size": { args: { text?: string | null }; result: Resource };
+  "predefined.zoom-in": { args: { text?: string | null }; result: Resource };
+  "predefined.zoom-out": { args: { text?: string | null }; result: Resource };
+  "predefined.fullscreen": { args: { text?: string | null }; result: Resource };
+  "predefined.hide": { args: { text?: string | null }; result: Resource };
+  "predefined.hide-others": { args: { text?: string | null }; result: Resource };
+  "predefined.show-all": { args: { text?: string | null }; result: Resource };
+  "predefined.close-window": { args: { text?: string | null }; result: Resource };
+  "predefined.quit": { args: { text?: string | null }; result: Resource };
+  "predefined.services": { args: { text?: string | null }; result: Resource };
+  "predefined.bring-all-to-front": { args: { text?: string | null }; result: Resource };
+  "predefined.start-speaking": { args: { text?: string | null }; result: Resource };
+  "predefined.stop-speaking": { args: { text?: string | null }; result: Resource };
+  "predefined.start-dictation": { args: { text?: string | null }; result: Resource };
+  "predefined.emoji-and-symbols": { args: { text?: string | null }; result: Resource };
+  "predefined.about": { args: { text?: string | null; metadata?: AboutMetadata | null }; result: Resource };
   "menu.items": { args: { handle: string }; result: Resource[] };
   "menu.append": { args: { handle: string; items: string[] }; result: null };
   "menu.prepend": { args: { handle: string; items: string[] }; result: null };

@@ -13,6 +13,9 @@ Runnable projects live in [kirie-examples](https://github.com/gd-kirie/kirie-exa
 
 ## Development
 
+The root Cargo workspace includes the Tray GDExtension in `crates/gd-kirie-tray`.
+Cargo uses the root `Cargo.lock` and writes build output to `target/`.
+
 Install tools and dependencies from this directory:
 
 ```sh
@@ -38,6 +41,10 @@ mise run test:unit
 mise run test:tray-native
 mise run lint
 ```
+
+The native build assembles the addon in `packages/tray/addon/kirie_tray`.
+Its `bin/` directories use Rust target triples.
+The npm build compiles the browser package. The native build owns addon assembly.
 
 Use `mise run format` to format source files.
 Edit notification addon code in `packages/notifications/src-godot`.

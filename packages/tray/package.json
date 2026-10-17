@@ -22,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown && node scripts/package-addon.ts",
+    "build": "tsdown",
     "test:run": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
