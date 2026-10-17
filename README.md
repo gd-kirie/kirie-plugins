@@ -13,9 +13,6 @@ Runnable projects live in [kirie-examples](https://github.com/gd-kirie/kirie-exa
 
 ## Development
 
-The root Cargo workspace includes the Tray GDExtension in `crates/gd-kirie-tray`.
-Cargo uses the root `Cargo.lock` and writes build output to `target/`.
-
 Install tools and dependencies from this directory:
 
 ```sh
@@ -42,18 +39,9 @@ mise run test:tray-native
 mise run lint
 ```
 
-The native build assembles the addon in `packages/tray/addon/kirie_tray`.
-Its `bin/` directories use Rust target triples.
-The npm build compiles the browser package. The native build owns addon assembly.
-
 Use `mise run format` to format source files.
 Edit notification addon code in `packages/notifications/src-godot`.
 The package build generates GDScript under its addon directory.
-
-Core npm and NuGet dependencies use published version 0.13.0.
-The .NET plugins that reference Eventa exclude the adapter's `contentFiles` bridge,
-which belongs in applications that compile the addon-provided `KirieClient`.
-See [NuGet asset controls](https://learn.microsoft.com/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets).
 
 Release instructions are in [npm publishing](docs/npm-publishing.md) and
 [NuGet publishing](docs/nuget-publishing.md).
