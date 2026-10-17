@@ -19,7 +19,13 @@ struct KirieTrayExtension;
 unsafe impl ExtensionLibrary for KirieTrayExtension {
     fn on_stage_init(stage: InitStage) {
         if stage == InitStage::Scene {
-            events::install_handlers();
+            events::initialize();
+        }
+    }
+
+    fn on_stage_deinit(stage: InitStage) {
+        if stage == InitStage::Scene {
+            events::deinitialize();
         }
     }
 

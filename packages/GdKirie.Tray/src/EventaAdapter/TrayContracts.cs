@@ -70,7 +70,7 @@ internal enum TrayMethod
     ItemSetIcon,
 }
 
-internal static class TrayEvents
+internal static class TrayProtocol
 {
     internal static readonly Dictionary<TrayMethod, InvokeEventDefinition<JsonElement, JsonElement>> Methods =
         Enum.GetValues<TrayMethod>().ToDictionary(method => method,
@@ -84,10 +84,10 @@ internal static class TrayEvents
 /// <param name="Kind">The native object type.</param>
 /// <param name="Id">The upstream object ID.</param>
 public sealed record TrayResource(string Handle, string Kind, string Id);
-internal sealed record RemoteSize(double Width, double Height);
-internal sealed record RemoteRect(TrayPosition Position, RemoteSize Size);
-internal sealed record RemoteEvent(string Type, TrayResource? Item = null, TrayResource? Tray = null,
-    TrayPosition? Position = null, RemoteRect? Rect = null, string? Button = null, string? ButtonState = null);
+internal sealed record RemoteMenuEvent(string Id)
+{
+    public string Type => "menu";
+}
 
 internal sealed record SuccessReply([property: JsonIgnore(Condition = JsonIgnoreCondition.Never)] object? Value)
 {
@@ -103,12 +103,13 @@ internal sealed record FailureReply(RemoteError Error)
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     RespectRequiredConstructorParameters = true, RespectNullableAnnotations = true,
-    AllowOutOfOrderMetadataProperties = true)]
+    AllowOutOfOrderMetadataProperties = true, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(JsonElement))]
 [JsonSerializable(typeof(TrayResource))]
 [JsonSerializable(typeof(TrayResource[]))]
-[JsonSerializable(typeof(RemoteRect))]
-[JsonSerializable(typeof(RemoteEvent))]
+[JsonSerializable(typeof(TrayRect))]
+[JsonSerializable(typeof(TrayIconEvent))]
+[JsonSerializable(typeof(RemoteMenuEvent))]
 [JsonSerializable(typeof(SuccessReply))]
 [JsonSerializable(typeof(FailureReply))]
 [JsonSerializable(typeof(bool))]

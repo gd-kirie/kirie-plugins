@@ -29,9 +29,19 @@ using var tray = new TrayIcon(new()
     Tooltip = "My application",
 });
 
-enabled.Clicked += (_, _) => GD.Print(enabled.Checked);
-quit.Clicked += (_, _) => GetTree().Quit();
-tray.Event += (_, e) => GD.Print(e.Type);
+using var events = new TrayEvents();
+events.Menu += id =>
+{
+    if (id == enabled.Id)
+    {
+        GD.Print(enabled.Checked);
+    }
+    else if (id == quit.Id)
+    {
+        GetTree().Quit();
+    }
+};
+events.Tray += e => GD.Print($"{e.Id}: {e.Type}");
 
 enabled.Checked = false;
 menu.Remove(quit);
@@ -72,7 +82,7 @@ either have no effect or throw `TrayException` with the native error.
 ## Lifetime and events
 
 Each C# object holds one native Godot reference.
-`Dispose` disconnects its callbacks and releases that reference.
+`Dispose` releases that reference.
 It does not remove entries from menus or release references held by native containers.
 `Remove` changes menu membership without disposing the item.
 
@@ -81,14 +91,18 @@ Dispose each returned reference after use. Wrappers for the same native object
 have no managed identity guarantee.
 `InstanceId` identifies the native Godot object.
 `Id` is its upstream tray or menu ID.
-Live tray IDs must be unique among trays, and live menu entry IDs among entries,
-so native events can identify their target.
+`TrayEvents` subscribes to the global `KirieTrayEvents` Godot singleton.
+Its `Menu` event supplies an upstream menu item ID. Its `Tray` event supplies a `TrayIconEvent` with an upstream tray `Id`.
+The native bridge reads the upstream event receivers on Godot's main thread and emits Godot signals.
+Eventa serializes `TrayIconEvent` directly. Enum names retain the upstream spelling, such as `Click`, `Left`, and `Up`.
+`TrayRect` contains `Position` and `Size`. `TraySize` contains `Width` and `Height`.
+Callbacks can change native menu state directly.
+Upstream does not provide the originating tray ID for a menu event.
 
-Use `Clicked` and `TrayIcon.Event` to receive native events.
-Native signal connections exist only while the event has subscribers. Unsubscribe
-or dispose the wrapper to release an active subscription.
-Callbacks run on Godot's main thread and can change native menu state directly.
-Menu events identify the item. Upstream does not provide the originating tray ID.
+Events use upstream ID semantics. Kirie does not enforce unique IDs or track ID reuse.
+Events do not contain browser handles and do not require an exposed object.
+Disposing a menu or tray wrapper does not stop the global event stream.
+`TrayEvents.Dispose()` disconnects only that subscription.
 
 All native calls and disposal must run on Godot's main thread.
 Native operation errors throw `TrayException`, with the native `Code` and `Message`.
@@ -117,8 +131,8 @@ Browser code calls `client.fromResource(resource)` to wrap it locally.
 Both languages then operate on the same native state.
 
 The adapter owns one reference and one live handle per native object.
-Repeated queries and `Expose` calls reuse that handle without extra retained references or event subscriptions.
-Closing the handle invalidates browser wrappers that use it.
+Repeated queries and `Expose` calls reuse that handle without extra retained references.
+Closing the handle invalidates browser wrappers that use it. Global events continue until adapter disposal.
 The application's original C# wrapper and native parent references remain usable.
 
 Descriptors contain a transport handle, native upstream ID, and object kind.

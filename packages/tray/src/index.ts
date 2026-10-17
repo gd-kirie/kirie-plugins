@@ -7,7 +7,6 @@ import type {
   IconMenuItemOptions,
   IconSource,
   MenuCreateOptions,
-  MenuEvent,
   MenuItemOptions,
   MethodName,
   NativeEvent,
@@ -18,7 +17,6 @@ import type {
   Result,
   SubmenuCreateOptions,
   TrayCreateOptions,
-  TrayEvent,
 } from "./contracts";
 import { defineInboundEventa, defineInvoke, defineInvokeEventa } from "@moeru/eventa";
 
@@ -184,14 +182,6 @@ export class TrayIcon extends TrayObject {
   async setTempDirPath(path: string | null): Promise<void> {
     await this.connection.request("tray.set-temp-dir-path", { handle: this.handle, path });
   }
-
-  onEvent(handler: (event: TrayEvent) => void): () => void {
-    return this.connection.onEvent((event) => {
-      if (event.type !== "menu" && event.tray.handle === this.handle) {
-        handler(event);
-      }
-    });
-  }
 }
 
 abstract class MenuContainer extends TrayObject {
@@ -262,14 +252,6 @@ export class Submenu extends MenuContainer {
   iconIsTemplate(): Promise<boolean> {
     return this.connection.request("item.icon-is-template", { handle: this.handle });
   }
-
-  onClick(handler: (event: MenuEvent) => void): () => void {
-    return this.connection.onEvent((event) => {
-      if (event.type === "menu" && event.item.handle === this.handle) {
-        handler(event);
-      }
-    });
-  }
 }
 
 abstract class TextMenuItem extends TrayObject {
@@ -279,14 +261,6 @@ abstract class TextMenuItem extends TrayObject {
 
   async setText(text: string): Promise<void> {
     await this.connection.request("item.set-text", { handle: this.handle, text });
-  }
-
-  onClick(handler: (event: MenuEvent) => void): () => void {
-    return this.connection.onEvent((event) => {
-      if (event.type === "menu" && event.item.handle === this.handle) {
-        handler(event);
-      }
-    });
   }
 }
 
@@ -446,7 +420,7 @@ export class TrayClient {
     return this.connection.object(resource);
   }
 
-  /** Event resource descriptors identify origins and may refer to released handles. */
+  /** Receives global upstream events by native ID, independent of resource handles. */
   onEvent(handler: (event: NativeEvent) => void): () => void {
     return this.connection.onEvent(handler);
   }

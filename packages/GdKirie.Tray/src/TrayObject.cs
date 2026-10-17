@@ -157,9 +157,6 @@ public abstract class TrayObject : IDisposable
         return WrapEntry((RefCounted)value.AsGodotObject());
     }
 
-    /// <summary>Disconnects the native callbacks before this reference is released.</summary>
-    protected virtual void DisconnectSignals() { }
-
     /// <summary>Releases this reference. Native menu containers keep their own references to attached objects.</summary>
     public void Dispose()
     {
@@ -169,7 +166,6 @@ public abstract class TrayObject : IDisposable
             return;
         }
 
-        DisconnectSignals();
         var native = Native;
         IsDisposed = true;
         native.Dispose();

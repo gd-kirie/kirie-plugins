@@ -117,35 +117,38 @@ Subscribe to native events:
 
 ```ts
 const stopEvents = client.onEvent((event) => {
-  console.log(event);
-});
-const stopCheck = enabled.onClick(() => {
-  enabled.isChecked().then(console.log).catch(console.error);
+  if (event.type === "menu" && event.id === enabled.id) {
+    enabled.isChecked().then(console.log).catch(console.error);
+  }
 });
 
-// Stop subscriptions when the page exits.
-stopCheck();
+// Stop the subscription when the page exits.
 stopEvents();
 ```
 
-Tray events include click, double-click, enter, move, and leave. They retain
+Tray events use the upstream names `Click`, `DoubleClick`, `Enter`, `Move`, and `Leave`. They retain
 the upstream positions, rectangles, buttons, and button states. Coordinates use physical screen pixels.
-Menu events contain the item descriptor. Upstream does not identify the source
-tray for a menu event. Native check clicks require `isChecked()`, not local inversion.
+Mouse button values are `Left`, `Right`, and `Middle`. Button state values are `Up` and `Down`.
+C# and Eventa use the same event fields and rectangle structure.
+
+Every event contains its upstream `id`. Menu events contain the menu item ID.
+Upstream does not identify the source tray for a menu event.
+Native check clicks require `isChecked()`, not local inversion.
+The adapter forwards global events without resource lookup or handle filtering.
+Subscriptions work before resource creation and continue after a handle closes.
 
 The adapter owns browser resources. Repeated queries of the same native object
 return the same live handle; querying does not require a cleanup loop.
 The optional creation `id` passes to the upstream constructor. Predefined items
 use upstream-generated IDs.
-Live tray IDs must be unique among trays, and live menu entry IDs among entries,
-because upstream events identify objects by ID.
+IDs use upstream semantics. Kirie does not enforce unique IDs or track ID reuse.
 
 C# applications share an object with `adapter.Expose(item)` and send the returned
 descriptor through their own application protocol. Browser code wraps it with
 `client.fromResource(resource)`, without another request. This handle owns an
 adapter-owned reference; closing it leaves the application's original wrapper alive.
 
-`close()` releases that handle's reference and event forwarding. It does not
+`close()` releases that handle's reference. It does not
 remove menu membership or recursively close children. Native containers retain
 their attached objects. All browser wrappers sharing the closed handle become
 invalid. A later query of an object retained by a native parent opens a new handle.
@@ -154,9 +157,10 @@ The adapter releases all of its references on disposal. Applications decide when
 to dispose an adapter or retain descriptors across page reloads. Tray provides
 no alias registry, discovery methods, or automatic reconnection.
 
-Each native event is forwarded once per adapter with its object's handle.
-Browser subscriptions require explicit cleanup, even
-after `close()`; browser garbage collection does not release native resources.
+Each adapter owns one global Godot signal subscription and forwards events with upstream IDs.
+The native bridge reads the upstream receivers on Godot's main thread.
+Browser subscriptions require explicit cleanup, even after `close()`.
+Browser garbage collection does not release native resources.
 
 Objects belong to one Eventa context. References from another context are
 rejected, and closed handles remain invalid.

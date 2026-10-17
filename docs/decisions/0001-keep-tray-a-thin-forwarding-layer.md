@@ -31,13 +31,13 @@ and platform differences; do not emulate unsupported behavior.
 
 Each C# wrapper owns an independent native reference. Menu queries return new
 references, without a managed identity cache. Dispose releases only that
-reference and its subscriptions. Native containers retain their attached objects.
-Subscribe to native signals only while a C# event has subscribers.
+reference. Native containers retain their attached objects.
+Events use the global upstream ID stream instead of per-object subscriptions.
 
 The Eventa adapter is part of GdKirie.Tray. It borrows the application's context
 and owns one C# reference per exposed native object.
-Repeated queries return its existing live handle and do not add retained
-references or event connections. Expose retains a reference
+Repeated queries return its existing live handle and do not add retained references.
+Expose retains a reference
 independent of the application's original C# wrapper. Closing a handle releases
 that adapter reference; querying a parent-retained object later opens a new handle.
 
@@ -47,9 +47,17 @@ which descriptors to share and when to replace a page's adapter. Browser garbage
 collection does not release native resources; close and adapter disposal do.
 
 Keep only the machinery required by language and runtime boundaries: value
-conversion, handle lookup, native reference ownership, and main-thread event
-delivery. Queued events retain the Godot identity registered at receipt so that
-later native ID reuse cannot redirect already-received events.
+conversion, handle lookup, native reference ownership, and main-thread event delivery.
+Read `MenuEvent::receiver()` and `TrayIconEvent::receiver()` from the Godot main-loop callback.
+The `KirieTrayEvents` Godot singleton emits global signals with upstream IDs.
+Do not add a separate event queue, an ID-to-object registry, or ID reuse tracking.
+
+C# `TrayEvents` owns a subscription to these signals.
+Each Eventa adapter owns one subscription and forwards global events with IDs, independent of browser handles.
+Browser callers subscribe through `client.onEvent()` and handle IDs directly.
+Keep upstream enum names and the `position` plus `size` rectangle structure across all event boundaries.
+Eventa serializes the C# tray event directly without a separate event or rectangle model.
+Object disposal and handle closure do not stop the global event stream.
 
 ## Consequences
 

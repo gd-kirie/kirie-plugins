@@ -87,16 +87,16 @@ export interface Rect {
 
 export interface MenuEvent {
   type: "menu";
-  item: Resource;
+  id: string;
 }
 
 export interface TrayEvent {
-  type: "click" | "double-click" | "enter" | "move" | "leave";
-  tray: Resource;
+  type: "Click" | "DoubleClick" | "Enter" | "Move" | "Leave";
+  id: string;
   position: Position;
   rect: Rect;
-  button?: "left" | "right" | "middle";
-  buttonState?: "up" | "down";
+  button?: "Left" | "Right" | "Middle";
+  buttonState?: "Up" | "Down";
 }
 
 export type NativeEvent = MenuEvent | TrayEvent;

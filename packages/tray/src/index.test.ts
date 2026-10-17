@@ -1,7 +1,7 @@
 import type { KirieEventaContext } from "@gd-kirie/ipc-eventa";
 import type { NativeEvent, Reply, Resource } from "./contracts";
 import { createContext, defineEventa, matchBy } from "@moeru/eventa";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   CheckMenuItem,
   createTrayClient,
@@ -171,40 +171,32 @@ describe("tray objects over Eventa", () => {
     });
   });
 
-  it("routes event subscriptions by handle and unsubscribes", async () => {
-    const native = host(({ wire }) => ({ ok: true, value: wire === "kirie:tray:tray-create" ? tray : wire === "kirie:tray:check-create" ? check : null }));
+  it("forwards global IDs without resource lookup and keeps subscriptions independent of handles", async () => {
+    const native = host(() => ({ ok: true, value: check }));
     const client = createTrayClient(native.context);
-    const iconTray = await client.createTray();
-    const item = await client.createCheckMenuItem({ text: "Enabled" });
-    const allEvents = vi.fn();
-    const trayEvents = vi.fn();
-    const itemEvents = vi.fn();
-    const offAll = client.onEvent(allEvents);
-    const offTray = iconTray.onEvent(trayEvents);
-    const offItem = item.onClick(itemEvents);
-    const menuEvent: NativeEvent = { type: "menu", item: check };
+    const received: NativeEvent[] = [];
+    const off = client.onEvent((event) => received.push(event));
+    const menuEvent: NativeEvent = { type: "menu", id: "unexposed-item" };
     const click: NativeEvent = {
-      type: "click",
-      tray,
+      type: "Click",
+      id: "unexposed-tray",
       position: { x: 4, y: 8 },
       rect: { position: { x: 1, y: 2 }, size: { width: 20, height: 20 } },
-      button: "left",
-      buttonState: "up",
+      button: "Left",
+      buttonState: "Up",
     };
     native.emit(menuEvent);
     native.emit(click);
-    native.emit({ type: "menu", item: { ...check, handle: "other-check" } });
-    native.emit({ ...click, tray: { ...tray, handle: "other-tray" } });
-    expect(allEvents).toHaveBeenCalledTimes(4);
-    expect(trayEvents).toHaveBeenCalledExactlyOnceWith(click);
-    expect(itemEvents).toHaveBeenCalledExactlyOnceWith(menuEvent);
-    offAll();
-    offTray();
-    offItem();
+    expect(received).toEqual([menuEvent, click]);
+    expect(native.calls).toHaveLength(0);
+
+    const item = await client.createCheckMenuItem({ text: "Enabled" });
+    await item.close();
+    const afterClose: NativeEvent = { type: "menu", id: item.id };
+    native.emit(afterClose);
+    expect(received).toEqual([menuEvent, click, afterClose]);
+    off();
     native.emit(click);
-    native.emit(menuEvent);
-    expect(allEvents).toHaveBeenCalledTimes(4);
-    expect(trayEvents).toHaveBeenCalledTimes(1);
-    expect(itemEvents).toHaveBeenCalledTimes(1);
+    expect(received).toEqual([menuEvent, click, afterClose]);
   });
 });

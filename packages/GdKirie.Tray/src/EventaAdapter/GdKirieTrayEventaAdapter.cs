@@ -10,12 +10,12 @@ public static class GdKirieTrayEventaAdapter
     public static KirieEventaJsonRegistry Register(KirieEventaJsonRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
-        foreach (var method in TrayEvents.Methods.Values)
+        foreach (var method in TrayProtocol.Methods.Values)
         {
             registry.RegisterInvoke(method, TrayJsonContext.Default.JsonElement, TrayJsonContext.Default.JsonElement);
         }
 
-        return registry.RegisterEvent(TrayEvents.Event, TrayJsonContext.Default.JsonElement);
+        return registry.RegisterEvent(TrayProtocol.Event, TrayJsonContext.Default.JsonElement);
     }
 
     /// <summary>Attaches browser methods while borrowing the application's context.</summary>

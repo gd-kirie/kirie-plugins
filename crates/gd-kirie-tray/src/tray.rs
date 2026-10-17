@@ -61,19 +61,8 @@ impl KirieTrayIcon {
     }
 }
 
-impl Drop for KirieTrayIcon {
-    fn drop(&mut self) {
-        if let Some(tray) = &self.tray {
-            events::unregister(true, &tray.id().0, self.base().instance_id());
-        }
-    }
-}
-
 #[godot_api]
 impl KirieTrayIcon {
-    #[signal]
-    fn tray_event(event: VarDictionary);
-
     #[func]
     fn initialize(&mut self, options: VarDictionary) -> VarDictionary {
         reply(|| {
@@ -103,7 +92,6 @@ impl KirieTrayIcon {
             if let Some(id) = id {
                 builder = builder.with_id(id);
             }
-            events::check_id(true, &builder.id().0)?;
             if let Some(icon) = icon {
                 builder = match icons::classify(icon)? {
                     icons::IconValue::Native(icon) => builder.with_native_icon(icon),
@@ -149,8 +137,6 @@ impl KirieTrayIcon {
                 builder = builder.with_temp_dir_path(path);
             }
             let tray = builder.build()?;
-            let owner = self.base().instance_id();
-            events::register(true, &tray.id().0, owner)?;
             self.tray = Some(tray);
             self.menu = menu;
             Ok(())

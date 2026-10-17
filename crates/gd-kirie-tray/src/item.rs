@@ -1,5 +1,5 @@
 use crate::{
-    events, icons,
+    icons,
     ownership::{self, Children},
     types::{self, Accelerator, Error, IconSource, ItemOptions, Result, reply},
 };
@@ -40,13 +40,6 @@ impl KirieTrayItem {
         }
     }
 
-    fn attach(&mut self, item: MenuItemKind) -> Result<()> {
-        let owner = self.base().instance_id();
-        events::register(false, &item.id().0, owner)?;
-        self.item = Some(item);
-        Ok(())
-    }
-
     fn finish(&mut self, item: MenuItemKind, options: ItemOptions) -> Result<()> {
         if options.accelerator.is_some() {
             set_accelerator(&item, options.accelerator)?;
@@ -57,23 +50,13 @@ impl KirieTrayItem {
         if let MenuItemKind::Submenu(submenu) = &item {
             self.children.reconcile(&submenu.items(), &options.items)?;
         }
-        self.attach(item)
-    }
-}
-
-impl Drop for KirieTrayItem {
-    fn drop(&mut self) {
-        if let Some(item) = &self.item {
-            events::unregister(false, &item.id().0, self.base().instance_id());
-        }
+        self.item = Some(item);
+        Ok(())
     }
 }
 
 #[godot_api]
 impl KirieTrayItem {
-    #[signal]
-    fn clicked();
-
     #[func]
     fn initialize_item(&mut self, options: VarDictionary) -> VarDictionary {
         reply(|| {
@@ -138,7 +121,8 @@ impl KirieTrayItem {
     fn initialize_separator(&mut self) -> VarDictionary {
         reply(|| {
             self.uninitialized()?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::separator()))
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::separator()));
+            Ok(())
         })
     }
 
@@ -146,9 +130,10 @@ impl KirieTrayItem {
     fn initialize_section_header(&mut self, text: GString) -> VarDictionary {
         reply(|| {
             self.uninitialized()?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::section_header(&text.to_string()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -157,9 +142,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::copy(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::copy(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -168,9 +154,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::cut(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::cut(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -179,9 +166,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::paste(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::paste(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -190,9 +178,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::paste_and_match_style(text.as_deref()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -201,9 +190,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::delete(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::delete(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -212,9 +202,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::select_all(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::select_all(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -223,9 +214,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::undo(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::undo(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -234,9 +226,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::redo(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::redo(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -245,9 +238,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::minimize(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::minimize(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -256,9 +250,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::maximize(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::maximize(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -267,9 +262,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -278,9 +274,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::actual_size(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::actual_size(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -289,9 +286,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom_in(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom_in(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -300,9 +298,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::zoom_out(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::zoom_out(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -311,9 +310,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::fullscreen(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::fullscreen(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -322,9 +322,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::hide(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::hide(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -333,9 +334,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::hide_others(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::hide_others(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -344,9 +346,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::show_all(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::show_all(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -355,9 +358,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::close_window(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::close_window(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -366,9 +370,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::quit(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::quit(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -377,9 +382,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::services(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::services(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -388,9 +394,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::bring_all_to_front(text.as_deref()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -399,9 +406,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::start_speaking(text.as_deref()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -410,9 +418,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::stop_speaking(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::stop_speaking(
                 text.as_deref(),
-            )))
+            )));
+            Ok(())
         })
     }
 
@@ -421,9 +430,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::start_dictation(text.as_deref()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -432,9 +442,10 @@ impl KirieTrayItem {
         reply(|| {
             self.uninitialized()?;
             let text = types::nullable_string(&text)?;
-            self.attach(MenuItemKind::Predefined(
+            self.item = Some(MenuItemKind::Predefined(
                 PredefinedMenuItem::emoji_and_symbols(text.as_deref()),
-            ))
+            ));
+            Ok(())
         })
     }
 
@@ -448,10 +459,11 @@ impl KirieTrayItem {
             } else {
                 Some(types::about_metadata(&metadata.try_to::<VarDictionary>()?)?)
             };
-            self.attach(MenuItemKind::Predefined(PredefinedMenuItem::about(
+            self.item = Some(MenuItemKind::Predefined(PredefinedMenuItem::about(
                 text.as_deref(),
                 metadata,
-            )))
+            )));
+            Ok(())
         })
     }
 

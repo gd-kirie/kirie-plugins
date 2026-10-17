@@ -9,6 +9,7 @@ public sealed class TrayEventaAdapter : IDisposable
 {
     private static long _nextHandle;
     private readonly IEventContext _context;
+    private readonly TrayEvents _events;
     private readonly Dictionary<string, TrayObject> _handles = new(StringComparer.Ordinal);
     private readonly List<IDisposable> _registrations = [];
     private bool _disposed;
@@ -16,6 +17,11 @@ public sealed class TrayEventaAdapter : IDisposable
     internal TrayEventaAdapter(IEventContext context)
     {
         _context = context;
+        _events = new TrayEvents();
+        _events.Menu += id => _context.Emit(TrayProtocol.Event,
+            JsonSerializer.SerializeToElement(new RemoteMenuEvent(id), TrayJsonContext.Default.RemoteMenuEvent));
+        _events.Tray += value => _context.Emit(TrayProtocol.Event,
+            JsonSerializer.SerializeToElement(value, TrayJsonContext.Default.TrayIconEvent));
         try
         {
             RegisterMethods();
@@ -51,6 +57,7 @@ public sealed class TrayEventaAdapter : IDisposable
         }
 
         _registrations.Clear();
+        _events.Dispose();
         foreach (var item in _handles.Values)
         {
             item.Dispose();
@@ -206,7 +213,7 @@ public sealed class TrayEventaAdapter : IDisposable
         Register(TrayMethod.TrayShowMenu, json.HandleRequest,
             request => Get<TrayIcon>(request.Handle).ShowMenu());
         Register(TrayMethod.TrayRect, json.HandleRequest,
-            request => Get<TrayIcon>(request.Handle).Rect() is { } rect ? ToRemote(rect) : null);
+            request => Get<TrayIcon>(request.Handle).Rect());
         Register(TrayMethod.TrayIconIsTemplate, json.HandleRequest,
             request => Get<TrayIcon>(request.Handle).IconIsTemplate());
         Register(TrayMethod.TraySetTempDirPath, json.PathRequest,
@@ -270,16 +277,6 @@ public sealed class TrayEventaAdapter : IDisposable
 
             var handle = $"tray-{++_nextHandle}";
             var resource = new TrayResource(handle, item.Kind, item.Id);
-            if (item is MenuEntry entry)
-            {
-                entry.Clicked += (_, _) => Emit(new RemoteEvent("menu", Item: resource));
-            }
-
-            if (item is TrayIcon tray)
-            {
-                tray.Event += (_, args) => EmitTrayEvent(resource, args);
-            }
-
             _handles.Add(handle, item);
             return resource;
         }
@@ -324,7 +321,7 @@ public sealed class TrayEventaAdapter : IDisposable
         JsonTypeInfo<T> requestType,
         Func<T, object?> handler) where T : class
     {
-        _registrations.Add(_context.RegisterInvokeHandler(TrayEvents.Methods[method], (body, _) =>
+        _registrations.Add(_context.RegisterInvokeHandler(TrayProtocol.Methods[method], (body, _) =>
         {
             EnsureAvailable();
             JsonElement reply;
@@ -353,23 +350,12 @@ public sealed class TrayEventaAdapter : IDisposable
     private static JsonElement Failure(string code, string message) =>
         JsonSerializer.SerializeToElement(new FailureReply(new RemoteError(code, message)), TrayJsonContext.Default.FailureReply);
 
-    private void Emit(RemoteEvent value) => _context.Emit(TrayEvents.Event, JsonSerializer.SerializeToElement(value, TrayJsonContext.Default.RemoteEvent));
-
     private void EnsureAvailable()
     {
         TrayObject.EnsureMainThread();
         ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
-    private void EmitTrayEvent(TrayResource resource, TrayIconEvent args)
-    {
-        var type = JsonNamingPolicy.KebabCaseLower.ConvertName(args.Type.ToString());
-        Emit(new RemoteEvent(type, Tray: resource,
-            Position: args.Position, Rect: ToRemote(args.Rect),
-            Button: args.Button?.ToString().ToLowerInvariant(), ButtonState: args.ButtonState?.ToString().ToLowerInvariant()));
-    }
-
-    private static RemoteRect ToRemote(TrayRect rect) => new(rect.Position, new RemoteSize(rect.Width, rect.Height));
     private static void SetAccelerator(MenuEntry item, Accelerator? accelerator)
     {
         switch (item)
