@@ -77,88 +77,59 @@ internal static class NativeValues
 
     internal static Variant Items(IEnumerable<MenuEntry> items)
     {
-        using var result = new Array();
+        TrayObject.EnsureMainThread();
+        // The native factory supplies Array[KirieTrayItem], which C# cannot express as Array<T>.
+        using var value = ClassDB.ClassCallStatic("KirieTrayItem", "item_array");
+        using var result = value.AsGodotArray();
         foreach (var item in items)
         {
-            using var value = Variant.From(item.Native);
-            result.Add(value);
+            using var entry = Variant.From(item.Native);
+            result.Add(entry);
         }
 
         return result;
     }
 
-    internal static Variant Tray(TrayOptions options)
-    {
-        using var result = new Dictionary { ["iconAsTemplate"] = options.IconAsTemplate };
-        Add(result, "id", options.Id);
-        Add(result, "icon", options.Icon);
-        if (options.Menu is not null)
-        {
-            using var menu = Variant.From(((TrayObject)options.Menu).Native);
-            result["menu"] = menu;
-        }
+    private static Variant NullableString(string? value) => value is null ? default(Variant) : value;
 
-        Add(result, "tooltip", options.Tooltip);
-        Add(result, "title", options.Title);
-        Add(result, "menuOnLeftClick", options.MenuOnLeftClick);
-        Add(result, "menuOnRightClick", options.MenuOnRightClick);
-        Add(result, "guid", options.Guid);
-        Add(result, "autosaveName", options.AutosaveName);
-        Add(result, "tempDirPath", options.TempDirPath);
-        return result;
+    internal static Variant[] Tray(TrayOptions options)
+    {
+        using var values = new Dictionary();
+        Add(values, "id", options.Id);
+        Add(values, "tooltip", options.Tooltip);
+        Add(values, "title", options.Title);
+        Add(values, "menuOnLeftClick", options.MenuOnLeftClick);
+        Add(values, "menuOnRightClick", options.MenuOnRightClick);
+        Add(values, "guid", options.Guid);
+        Add(values, "autosaveName", options.AutosaveName);
+        Add(values, "tempDirPath", options.TempDirPath);
+        return
+        [
+            NullableIcon(options.Icon), options.IconAsTemplate,
+            options.Menu is null ? default(Variant) : ((TrayObject)options.Menu).Native, values,
+        ];
     }
 
-    internal static Variant Menu(MenuOptions options)
-    {
-        using var items = Items(options.Items);
-        using var result = new Dictionary { ["items"] = items };
-        Add(result, "id", options.Id);
-        return result;
-    }
+    internal static Variant[] Menu(MenuOptions options) =>
+        [NullableString(options.Id), Items(options.Items)];
 
-    private static Dictionary Item(string? id, string text, bool enabled, Accelerator? accelerator = null)
-    {
-        var result = new Dictionary { ["text"] = text, ["enabled"] = enabled };
-        Add(result, "id", id);
-        if (accelerator is not null)
-        {
-            using var value = Accelerator(accelerator);
-            result["accelerator"] = value;
-        }
+    internal static Variant[] Item(MenuItemOptions options) =>
+        [NullableString(options.Id), options.Text, options.Enabled, Accelerator(options.Accelerator)];
 
-        return result;
-    }
+    internal static Variant[] Check(CheckMenuItemOptions options) =>
+        [NullableString(options.Id), options.Text, options.Enabled, options.Checked, Accelerator(options.Accelerator)];
 
-    internal static Variant Item(MenuItemOptions options)
-    {
-        using var result = Item(options.Id, options.Text, options.Enabled, options.Accelerator);
-        return result;
-    }
+    internal static Variant[] IconItem(IconMenuItemOptions options) =>
+    [
+        NullableString(options.Id), options.Text, options.Enabled, Accelerator(options.Accelerator),
+        NullableIcon(options.Icon), options.IconAsTemplate,
+    ];
 
-    internal static Variant Check(CheckMenuItemOptions options)
-    {
-        using var result = Item(options.Id, options.Text, options.Enabled, options.Accelerator);
-        result["checked"] = options.Checked;
-        return result;
-    }
-
-    internal static Variant IconItem(IconMenuItemOptions options)
-    {
-        using var result = Item(options.Id, options.Text, options.Enabled, options.Accelerator);
-        Add(result, "icon", options.Icon);
-        result["iconAsTemplate"] = options.IconAsTemplate;
-        return result;
-    }
-
-    internal static Variant Submenu(SubmenuOptions options)
-    {
-        using var result = Item(options.Id, options.Text, options.Enabled);
-        using var items = Items(options.Items);
-        result["items"] = items;
-        Add(result, "icon", options.Icon);
-        result["iconAsTemplate"] = options.IconAsTemplate;
-        return result;
-    }
+    internal static Variant[] Submenu(SubmenuOptions options) =>
+    [
+        NullableString(options.Id), options.Text, options.Enabled, Items(options.Items),
+        NullableIcon(options.Icon), options.IconAsTemplate,
+    ];
 
     internal static Variant Metadata(AboutMetadata metadata)
     {

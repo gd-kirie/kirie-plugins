@@ -41,16 +41,9 @@ impl Children {
 }
 
 pub fn prepare(
-    items: &VarArray,
+    objects: Vec<Gd<KirieTrayItem>>,
     owner: InstanceId,
 ) -> Result<(Vec<Gd<KirieTrayItem>>, Vec<MenuItemKind>)> {
-    let objects = items
-        .iter_shared()
-        .map(|item| {
-            item.try_to::<Gd<KirieTrayItem>>()
-                .map_err(|error| Error::new("invalid-argument", error))
-        })
-        .collect::<Result<Vec<_>>>()?;
     // A mutation can refer to its already-bound owner; a constructor cannot.
     if objects.iter().any(|item| item.instance_id() == owner) {
         return Err(Error::new(

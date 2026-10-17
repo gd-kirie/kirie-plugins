@@ -23,10 +23,9 @@ impl KirieTrayMenu {
 #[godot_api]
 impl KirieTrayMenu {
     #[func]
-    fn create(options: VarDictionary) -> VarDictionary {
+    fn create(id: Variant, items: Vec<Gd<KirieTrayItem>>) -> VarDictionary {
         reply(|| {
-            let id = types::optional_string(&options, "id")?;
-            let items = types::items(&options)?;
+            let id = types::nullable_string(&id)?;
             let native = ownership::prepare_objects(&items);
             let menu = match id {
                 Some(id) => Menu::with_id(id),
@@ -54,9 +53,9 @@ impl KirieTrayMenu {
     }
 
     #[func]
-    fn append(&mut self, items: VarArray) -> VarDictionary {
+    fn append(&mut self, items: Vec<Gd<KirieTrayItem>>) -> VarDictionary {
         reply(|| {
-            let (objects, native) = ownership::prepare(&items, self.base().instance_id())?;
+            let (objects, native) = ownership::prepare(items, self.base().instance_id())?;
             let menu = self.native().clone();
             let result =
                 menu.append_items(&native.iter().map(ownership::as_item).collect::<Vec<_>>());
@@ -66,9 +65,9 @@ impl KirieTrayMenu {
     }
 
     #[func]
-    fn prepend(&mut self, items: VarArray) -> VarDictionary {
+    fn prepend(&mut self, items: Vec<Gd<KirieTrayItem>>) -> VarDictionary {
         reply(|| {
-            let (objects, native) = ownership::prepare(&items, self.base().instance_id())?;
+            let (objects, native) = ownership::prepare(items, self.base().instance_id())?;
             let menu = self.native().clone();
             let result =
                 menu.prepend_items(&native.iter().map(ownership::as_item).collect::<Vec<_>>());
@@ -78,10 +77,10 @@ impl KirieTrayMenu {
     }
 
     #[func]
-    fn insert(&mut self, items: VarArray, position: i64) -> VarDictionary {
+    fn insert(&mut self, items: Vec<Gd<KirieTrayItem>>, position: u32) -> VarDictionary {
         reply(|| {
-            let position = usize::try_from(position)?;
-            let (objects, native) = ownership::prepare(&items, self.base().instance_id())?;
+            let position = position as usize;
+            let (objects, native) = ownership::prepare(items, self.base().instance_id())?;
             let menu = self.native().clone();
             if position > menu.items().len() {
                 return Err(Error::new(
@@ -110,10 +109,11 @@ impl KirieTrayMenu {
     }
 
     #[func]
-    fn remove_at(&mut self, position: i64) -> VarDictionary {
+    fn remove_at(&mut self, position: u32) -> VarDictionary {
         reply(|| {
+            let position = position as usize;
             let menu = self.native().clone();
-            let removed = menu.remove_at(usize::try_from(position)?);
+            let removed = menu.remove_at(position);
             let removed = removed
                 .map(|item| self.children.get(&item.id().0))
                 .transpose()?;

@@ -55,6 +55,8 @@ For application lifetime, store them in application fields and call `Dispose` du
 Native factories construct each upstream object before they return its Godot wrapper.
 Every returned wrapper is ready for use. Native construction errors throw `TrayException`.
 C# constructors and predefined item methods keep the same signatures.
+Godot bindings check declared argument types and menu item arrays.
+Nullable scalars, icons, accelerators, and About metadata still need value conversion.
 
 `Menu` and `Submenu` implement `IMenuContainer`.
 Both support `Items`, `Append`, `Prepend`, `Insert`, `Remove`, and `RemoveAt`.

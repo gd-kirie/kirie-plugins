@@ -14,16 +14,17 @@ enum OwnedMenu {
 }
 
 impl OwnedMenu {
-    fn read(value: &Variant) -> Result<Option<Self>> {
-        if value.is_nil() {
+    fn read(value: Option<Gd<RefCounted>>) -> Result<Option<Self>> {
+        let Some(value) = value else {
             return Ok(None);
-        }
-        if let Ok(menu) = value.try_to::<Gd<KirieTrayMenu>>() {
-            return Ok(Some(Self::Menu(menu)));
-        }
+        };
+        let value = match value.try_cast::<KirieTrayMenu>() {
+            Ok(menu) => return Ok(Some(Self::Menu(menu))),
+            Err(value) => value,
+        };
         let item = value
-            .try_to::<Gd<KirieTrayItem>>()
-            .map_err(|error| Error::new("invalid-argument", error))?;
+            .try_cast::<KirieTrayItem>()
+            .map_err(|_| Error::new("invalid-argument", "tray menu must be a menu or submenu"))?;
         Ok(Some(Self::Submenu(item)))
     }
 
@@ -56,26 +57,22 @@ pub struct KirieTrayIcon {
 #[godot_api]
 impl KirieTrayIcon {
     #[func]
-    fn create(options: VarDictionary) -> VarDictionary {
+    fn create(
+        icon: Variant,
+        icon_as_template: bool,
+        menu: Option<Gd<RefCounted>>,
+        options: VarDictionary,
+    ) -> VarDictionary {
         reply(|| {
-            let id = types::optional_string(&options, "id")?;
-            let icon = IconSource::read(&options.get_or_nil("icon"))?;
-            let icon_as_template = types::optional(&options, "iconAsTemplate")?.unwrap_or(false);
-            let menu = OwnedMenu::read(&options.get_or_nil("menu"))?;
-            let tooltip = types::optional_string(&options, "tooltip")?;
-            let title = types::optional_string(&options, "title")?;
-            let menu_on_left_click = types::optional(&options, "menuOnLeftClick")?;
-            let menu_on_right_click = types::optional(&options, "menuOnRightClick")?;
-            let guid = types::optional_string(&options, "guid")?;
-            let autosave_name = types::optional_string(&options, "autosaveName")?;
-            let temp_dir_path = types::optional_string(&options, "tempDirPath")?;
+            let icon = IconSource::read(&icon)?;
+            let menu = OwnedMenu::read(menu)?;
 
             if icon_as_template && !cfg!(target_os = "macos") {
                 return Err(Error::unsupported("template icons require macOS"));
             }
 
             let mut builder = TrayIconBuilder::new();
-            if let Some(id) = id {
+            if let Some(id) = types::optional::<String>(&options, "id")? {
                 builder = builder.with_id(id);
             }
             if let Some(icon) = icon {
@@ -101,25 +98,25 @@ impl KirieTrayIcon {
             if let Some(menu) = &menu {
                 builder = builder.with_menu(menu.context_menu()?);
             }
-            if let Some(tooltip) = tooltip {
+            if let Some(tooltip) = types::optional::<String>(&options, "tooltip")? {
                 builder = builder.with_tooltip(tooltip);
             }
-            if let Some(title) = title {
+            if let Some(title) = types::optional::<String>(&options, "title")? {
                 builder = builder.with_title(title);
             }
-            if let Some(enabled) = menu_on_left_click {
+            if let Some(enabled) = types::optional::<bool>(&options, "menuOnLeftClick")? {
                 builder = builder.with_menu_on_left_click(enabled);
             }
-            if let Some(enabled) = menu_on_right_click {
+            if let Some(enabled) = types::optional::<bool>(&options, "menuOnRightClick")? {
                 builder = builder.with_menu_on_right_click(enabled);
             }
-            if let Some(guid) = guid {
+            if let Some(guid) = types::optional::<String>(&options, "guid")? {
                 builder = builder.with_guid(types::guid(&guid)?);
             }
-            if let Some(name) = autosave_name {
+            if let Some(name) = types::optional::<String>(&options, "autosaveName")? {
                 builder = builder.with_autosave_name(name);
             }
-            if let Some(path) = temp_dir_path {
+            if let Some(path) = types::optional::<String>(&options, "tempDirPath")? {
                 builder = builder.with_temp_dir_path(path);
             }
             let tray = builder.build()?;
@@ -138,9 +135,9 @@ impl KirieTrayIcon {
     }
 
     #[func]
-    fn set_menu(&mut self, menu: Variant) -> VarDictionary {
+    fn set_menu(&mut self, menu: Option<Gd<RefCounted>>) -> VarDictionary {
         reply(|| {
-            let menu = OwnedMenu::read(&menu)?;
+            let menu = OwnedMenu::read(menu)?;
             self.tray
                 .set_menu(menu.as_ref().map(OwnedMenu::context_menu).transpose()?);
             self.menu = menu;

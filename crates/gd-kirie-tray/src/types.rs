@@ -37,12 +37,6 @@ impl From<godot::meta::error::ConvertError> for Error {
     }
 }
 
-impl From<std::num::TryFromIntError> for Error {
-    fn from(error: std::num::TryFromIntError) -> Self {
-        Self::new("invalid-argument", error)
-    }
-}
-
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub fn required<T: FromGodot>(dictionary: &VarDictionary, key: &str) -> Result<T> {
@@ -79,21 +73,6 @@ fn string_values(values: &VarArray) -> Result<Vec<String>> {
         .iter_shared()
         .map(|value| value.try_to::<String>().map_err(Into::into))
         .collect()
-}
-
-pub fn items(dictionary: &VarDictionary) -> Result<Vec<Gd<crate::KirieTrayItem>>> {
-    optional::<VarArray>(dictionary, "items")?
-        .map(|values| {
-            values
-                .iter_shared()
-                .map(|value| {
-                    value
-                        .try_to::<Gd<crate::KirieTrayItem>>()
-                        .map_err(Into::into)
-                })
-                .collect()
-        })
-        .unwrap_or_else(|| Ok(Vec::new()))
 }
 
 #[derive(Debug)]
@@ -245,33 +224,6 @@ pub fn about_metadata(dictionary: &VarDictionary) -> Result<tray_icon::menu::Abo
             .map(crate::icons::menu)
             .transpose()?,
     })
-}
-
-#[derive(Debug, Default)]
-pub struct ItemOptions {
-    pub id: Option<String>,
-    pub text: String,
-    pub enabled: bool,
-    pub checked: bool,
-    pub accelerator: Option<Accelerator>,
-    pub icon: Option<IconSource>,
-    pub icon_as_template: bool,
-    pub items: Vec<Gd<crate::KirieTrayItem>>,
-}
-
-impl ItemOptions {
-    pub fn read(dictionary: &VarDictionary) -> Result<Self> {
-        Ok(Self {
-            id: optional_string(dictionary, "id")?,
-            text: required::<String>(dictionary, "text")?,
-            enabled: optional(dictionary, "enabled")?.unwrap_or(true),
-            checked: optional(dictionary, "checked")?.unwrap_or(false),
-            accelerator: Accelerator::read(&dictionary.get_or_nil("accelerator"))?,
-            icon: IconSource::read(&dictionary.get_or_nil("icon"))?,
-            icon_as_template: optional(dictionary, "iconAsTemplate")?.unwrap_or(false),
-            items: items(dictionary)?,
-        })
-    }
 }
 
 pub fn guid(value: &str) -> Result<u128> {
