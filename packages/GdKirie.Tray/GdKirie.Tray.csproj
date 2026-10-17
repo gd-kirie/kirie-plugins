@@ -5,10 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- This library does not provide the application's Godot entry point. -->
+    <GodotDisabledSourceGenerators>GodotPluginsInitializer</GodotDisabledSourceGenerators>
     <PackageId>GdKirie.Tray</PackageId>
     <Version>0.13.0</Version>
     <Authors>Moeru AI</Authors>
-    <Description>System tray integration for Godot applications using Kirie Eventa IPC.</Description>
+    <Description>Native system tray and menu objects with Kirie Eventa integration.</Description>
     <PackageTags>godot;kirie;eventa;tray;menu;status-item</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -23,9 +25,6 @@
 
   <ItemGroup>
     <PackageReference Include="GdKirie.EventaAdapter" Version="0.13.0" ExcludeAssets="contentFiles" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
