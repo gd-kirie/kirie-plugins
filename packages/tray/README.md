@@ -166,6 +166,6 @@ objects from IPC. The plugin does not expose `muda` application menu bars or win
 It does not reproduce deprecated upstream APIs.
 
 See the [`tray` example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md) for a complete setup.
-The design follows [ADR-0017](../../docs/decisions/0017-keep-tray-a-thin-forwarding-layer.md).
+The design follows [ADR-0016](../../docs/decisions/0016-forward-native-tray-and-menu-objects.md).
 Primary API sources are [tray-icon](https://github.com/tauri-apps/tray-icon/tree/17e3196a15aa6174a21588ac4c5a52e322878479)
 and [muda](https://github.com/tauri-apps/muda/tree/33dfdf7c6daceed1dddd73b658e0e4c912685f36).

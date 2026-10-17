@@ -95,4 +95,4 @@ A disposed C# object throws `ObjectDisposedException` on further native access.
 See the [standalone C# example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray-native/README.md), the
 [browser example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md), the
 [browser API](../tray/README.md), and
-[architecture decision](../../docs/decisions/0017-keep-tray-a-thin-forwarding-layer.md).
+[architecture decision](../../docs/decisions/0016-forward-native-tray-and-menu-objects.md).
