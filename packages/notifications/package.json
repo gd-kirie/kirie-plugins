@@ -1,6 +1,6 @@
 {
   "name": "@gd-kirie/notifications",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "type": "module",
   "repository": {
     "type": "git",
@@ -28,9 +28,9 @@
     "typecheck:godot": "tsc -p tsconfig.godot.json --noEmit"
   },
   "dependencies": {
-    "@gd-kirie/ipc-eventa": "0.13.0",
+    "@gd-kirie/ipc-eventa": "0.14.2",
     "@moeru/eventa": "catalog:",
-    "kirie": "0.13.0"
+    "kirie": "0.14.2"
   },
   "devDependencies": {
     "tsdown": "catalog:",
