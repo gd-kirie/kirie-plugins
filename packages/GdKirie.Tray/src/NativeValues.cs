@@ -6,9 +6,14 @@ namespace GdKirie.Tray;
 
 internal static class NativeValues
 {
-    internal static Variant Icon(IconSource source)
+    internal static Dictionary? Icon(IconSource? source)
     {
-        using var result = new Dictionary();
+        if (source is null)
+        {
+            return null;
+        }
+
+        var result = new Dictionary();
         switch (source)
         {
             case IconSource.Resource icon:
@@ -52,39 +57,28 @@ internal static class NativeValues
                 Add(result, "height", icon.Height);
                 break;
             default:
+                result.Dispose();
                 throw new ArgumentOutOfRangeException(nameof(source));
         }
 
         return result;
     }
 
-    internal static Variant NullableIcon(IconSource? icon) => icon is null ? default : Icon(icon);
-
-    internal static Variant Accelerator(Accelerator? accelerator)
+    internal static Dictionary? Accelerator(Accelerator? accelerator) => accelerator is null ? null : new()
     {
-        if (accelerator is null)
-        {
-            return default;
-        }
+        ["kind"] = accelerator is GdKirie.Tray.Accelerator.Physical ? "physical" : "logical",
+        ["value"] = accelerator.Value,
+    };
 
-        using var result = new Dictionary
-        {
-            ["kind"] = accelerator is GdKirie.Tray.Accelerator.Physical ? "physical" : "logical",
-            ["value"] = accelerator.Value,
-        };
-        return result;
-    }
-
-    internal static Variant Items(IEnumerable<MenuEntry> items)
+    internal static Array<RefCounted> Items(IEnumerable<MenuEntry> items)
     {
         TrayObject.EnsureMainThread();
-        // The native factory supplies Array[KirieTrayItem], which C# cannot express as Array<T>.
+        // The native factory preserves the runtime KirieTrayItem element type.
         using var value = ClassDB.ClassCallStatic("KirieTrayItem", "item_array");
-        using var result = value.AsGodotArray();
+        var result = value.AsGodotArray<RefCounted>();
         foreach (var item in items)
         {
-            using var entry = Variant.From(item.Native);
-            result.Add(entry);
+            result.Add(item.Native);
         }
 
         return result;
@@ -103,49 +97,63 @@ internal static class NativeValues
         Add(values, "guid", options.Guid);
         Add(values, "autosaveName", options.AutosaveName);
         Add(values, "tempDirPath", options.TempDirPath);
+        using var icon = Icon(options.Icon);
         return
         [
-            NullableIcon(options.Icon), options.IconAsTemplate,
+            Variant.From(icon), options.IconAsTemplate,
             options.Menu is null ? default(Variant) : ((TrayObject)options.Menu).Native, values,
         ];
     }
 
-    internal static Variant[] Menu(MenuOptions options) =>
-        [NullableString(options.Id), Items(options.Items)];
-
-    internal static Variant[] Item(MenuItemOptions options) =>
-        [NullableString(options.Id), options.Text, options.Enabled, Accelerator(options.Accelerator)];
-
-    internal static Variant[] Check(CheckMenuItemOptions options) =>
-        [NullableString(options.Id), options.Text, options.Enabled, options.Checked, Accelerator(options.Accelerator)];
-
-    internal static Variant[] IconItem(IconMenuItemOptions options) =>
-    [
-        NullableString(options.Id), options.Text, options.Enabled, Accelerator(options.Accelerator),
-        NullableIcon(options.Icon), options.IconAsTemplate,
-    ];
-
-    internal static Variant[] Submenu(SubmenuOptions options) =>
-    [
-        NullableString(options.Id), options.Text, options.Enabled, Items(options.Items),
-        NullableIcon(options.Icon), options.IconAsTemplate,
-    ];
-
-    internal static Variant Metadata(AboutMetadata metadata)
+    internal static Variant[] Menu(MenuOptions options)
     {
-        using var result = new Dictionary();
+        using var items = (Array)Items(options.Items);
+        return [NullableString(options.Id), items];
+    }
+
+    internal static Variant[] Item(MenuItemOptions options)
+    {
+        using var accelerator = Accelerator(options.Accelerator);
+        return [NullableString(options.Id), options.Text, options.Enabled, Variant.From(accelerator)];
+    }
+
+    internal static Variant[] Check(CheckMenuItemOptions options)
+    {
+        using var accelerator = Accelerator(options.Accelerator);
+        return [NullableString(options.Id), options.Text, options.Enabled, options.Checked, Variant.From(accelerator)];
+    }
+
+    internal static Variant[] IconItem(IconMenuItemOptions options)
+    {
+        using var accelerator = Accelerator(options.Accelerator);
+        using var icon = Icon(options.Icon);
+        return
+        [
+            NullableString(options.Id), options.Text, options.Enabled, Variant.From(accelerator),
+            Variant.From(icon), options.IconAsTemplate,
+        ];
+    }
+
+    internal static Variant[] Submenu(SubmenuOptions options)
+    {
+        using var items = (Array)Items(options.Items);
+        using var icon = Icon(options.Icon);
+        return
+        [
+            NullableString(options.Id), options.Text, options.Enabled, items,
+            Variant.From(icon), options.IconAsTemplate,
+        ];
+    }
+
+    internal static Dictionary Metadata(AboutMetadata metadata)
+    {
+        var result = new Dictionary();
         Add(result, "name", metadata.Name);
         Add(result, "version", metadata.Version);
         Add(result, "shortVersion", metadata.ShortVersion);
         if (metadata.Authors is not null)
         {
-            using var authors = new Array();
-            foreach (var author in metadata.Authors)
-            {
-                using var value = Variant.From(author);
-                authors.Add(value);
-            }
-
+            using var authors = (Array)new Array<string>(metadata.Authors);
             result["authors"] = authors;
         }
 
@@ -188,7 +196,7 @@ internal static class NativeValues
         if (value is not null)
         {
             using var icon = Icon(value);
-            result[key] = icon;
+            result[key] = Variant.From(icon);
         }
     }
 }

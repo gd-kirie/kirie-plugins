@@ -5,6 +5,7 @@ namespace GdKirie.Tray;
 /// <summary>A managed reference to one native tray or menu object.</summary>
 public abstract class TrayObject : IDisposable
 {
+    // Each wrapper owns a native reference independently of Godot's cached managed object.
     private Variant _native;
 
     internal TrayObject(RefCounted native, string kind)
@@ -12,8 +13,7 @@ public abstract class TrayObject : IDisposable
         _native = Variant.From(native);
         Kind = kind;
         InstanceId = native.GetInstanceId();
-        using var id = Call("id");
-        Id = id.AsString();
+        Id = Call<string>("id");
     }
 
     /// <summary>The upstream object ID.</summary>
@@ -124,20 +124,43 @@ public abstract class TrayObject : IDisposable
         }
     }
 
+    internal T Call<[MustBeVariant] T>(string method, params Variant[] arguments)
+    {
+        using var value = Call(method, arguments);
+        return value.As<T>();
+    }
+
     internal void Set(string method, params Variant[] arguments)
     {
         using var result = Call(method, arguments);
     }
 
+    internal void SetItems(string method, MenuEntry[] items, int? position = null)
+    {
+        using var values = (Godot.Collections.Array)NativeValues.Items(items);
+        Set(method, position.HasValue ? [values, position.Value] : [values]);
+    }
+
+    internal void SetIconSource(IconSource? icon, bool iconAsTemplate)
+    {
+        using var value = NativeValues.Icon(icon);
+        Set("set_icon", Variant.From(value), iconAsTemplate);
+    }
+
+    internal void SetAcceleratorValue(Accelerator? accelerator)
+    {
+        using var value = NativeValues.Accelerator(accelerator);
+        Set("set_accelerator", Variant.From(value));
+    }
+
     internal IReadOnlyList<MenuEntry> GetItems()
     {
-        using var value = Call("items");
-        using var array = value.AsGodotArray();
+        var array = Call<Godot.Collections.Array<RefCounted>>("items");
+        using var storage = (Godot.Collections.Array)array;
         var items = new List<MenuEntry>(array.Count);
         foreach (var item in array)
         {
-            using var ownedItem = item;
-            items.Add(WrapEntry((RefCounted)item.AsGodotObject()));
+            items.Add(WrapEntry(item));
         }
 
         return items;

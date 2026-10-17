@@ -9,7 +9,7 @@ public sealed class MenuItem : EnabledMenuEntry
     public MenuItem(MenuItemOptions options) : base(Create("KirieTrayItem", "create_item", NativeValues.Item(options)), "item") { }
     internal MenuItem(RefCounted native) : base(native, "item") { }
     /// <summary>Sets a keyboard accelerator, or clears it with null.</summary>
-    public void SetAccelerator(Accelerator? accelerator) => Set("set_accelerator", NativeValues.Accelerator(accelerator));
+    public void SetAccelerator(Accelerator? accelerator) => SetAcceleratorValue(accelerator);
 }
 
 /// <summary>An upstream check menu item.</summary>
@@ -22,16 +22,12 @@ public sealed class CheckMenuItem : EnabledMenuEntry
     /// <summary>The current upstream checked state.</summary>
     public bool Checked
     {
-        get
-        {
-            using var result = Call("is_checked");
-            return result.AsBool();
-        }
+        get => Call<bool>("is_checked");
         set => Set("set_checked", value);
     }
 
     /// <summary>Sets a keyboard accelerator, or clears it with null.</summary>
-    public void SetAccelerator(Accelerator? accelerator) => Set("set_accelerator", NativeValues.Accelerator(accelerator));
+    public void SetAccelerator(Accelerator? accelerator) => SetAcceleratorValue(accelerator);
 }
 
 /// <summary>An upstream menu item with an icon.</summary>
@@ -41,16 +37,12 @@ public sealed class IconMenuItem : EnabledMenuEntry
     public IconMenuItem(IconMenuItemOptions options) : base(Create("KirieTrayItem", "create_icon", NativeValues.IconItem(options)), "icon") { }
     internal IconMenuItem(RefCounted native) : base(native, "icon") { }
     /// <summary>Sets a keyboard accelerator, or clears it with null.</summary>
-    public void SetAccelerator(Accelerator? accelerator) => Set("set_accelerator", NativeValues.Accelerator(accelerator));
+    public void SetAccelerator(Accelerator? accelerator) => SetAcceleratorValue(accelerator);
     /// <summary>Sets or clears the icon. Platform support follows upstream.</summary>
-    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => Set("set_icon", NativeValues.NullableIcon(icon), iconAsTemplate);
+    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => SetIconSource(icon, iconAsTemplate);
 
     /// <summary>Reads the macOS template icon state.</summary>
-    public bool IconIsTemplate()
-    {
-        using var result = Call("icon_is_template");
-        return result.AsBool();
-    }
+    public bool IconIsTemplate() => Call<bool>("icon_is_template");
 }
 
 /// <summary>A menu item with behavior supplied by upstream and the operating system.</summary>
@@ -169,7 +161,9 @@ public sealed class PredefinedMenuItem : MenuEntry
         new(Create("KirieTrayItem", "emoji_and_symbols", text is null ? default(Variant) : text));
 
     /// <summary>Creates an upstream About item with optional text and metadata.</summary>
-    public static PredefinedMenuItem About(string? text = null, AboutMetadata? metadata = null) =>
-        new(Create("KirieTrayItem", "about", text is null ? default(Variant) : text,
-            metadata is null ? default : NativeValues.Metadata(metadata)));
+    public static PredefinedMenuItem About(string? text = null, AboutMetadata? metadata = null)
+    {
+        using var value = metadata is null ? null : NativeValues.Metadata(metadata);
+        return new(Create("KirieTrayItem", "about", text is null ? default(Variant) : text, Variant.From(value)));
+    }
 }

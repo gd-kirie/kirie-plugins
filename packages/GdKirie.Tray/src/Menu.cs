@@ -30,11 +30,11 @@ public sealed class Menu : TrayObject, IMenuContainer
     /// <summary>New references to the current native children in menu order. Dispose each returned reference.</summary>
     public IReadOnlyList<MenuEntry> Items => GetItems();
     /// <summary>Appends these entries in order.</summary>
-    public void Append(params MenuEntry[] items) => Set("append", NativeValues.Items(items));
+    public void Append(params MenuEntry[] items) => SetItems("append", items);
     /// <summary>Prepends these entries in order.</summary>
-    public void Prepend(params MenuEntry[] items) => Set("prepend", NativeValues.Items(items));
+    public void Prepend(params MenuEntry[] items) => SetItems("prepend", items);
     /// <summary>Inserts these entries at a zero-based position.</summary>
-    public void Insert(int position, params MenuEntry[] items) => Set("insert", NativeValues.Items(items), position);
+    public void Insert(int position, params MenuEntry[] items) => SetItems("insert", items, position);
     /// <summary>Removes an entry from this container without releasing other references.</summary>
     public void Remove(MenuEntry item) => Set("remove", item.Native);
     /// <summary>Removes the entry at a zero-based position and returns a new reference to dispose, or null if absent.</summary>
@@ -49,11 +49,7 @@ public abstract class MenuEntry : TrayObject
     /// <summary>The current upstream item text.</summary>
     public string Text
     {
-        get
-        {
-            using var result = Call("text");
-            return result.AsString();
-        }
+        get => Call<string>("text");
         set => Set("set_text", value);
     }
 }
@@ -66,11 +62,7 @@ public abstract class EnabledMenuEntry : MenuEntry
     /// <summary>The current upstream enabled state.</summary>
     public bool Enabled
     {
-        get
-        {
-            using var result = Call("is_enabled");
-            return result.AsBool();
-        }
+        get => Call<bool>("is_enabled");
         set => Set("set_enabled", value);
     }
 }
@@ -85,22 +77,18 @@ public sealed class Submenu : EnabledMenuEntry, IMenuContainer
     /// <summary>New references to the current native children in menu order. Dispose each returned reference.</summary>
     public IReadOnlyList<MenuEntry> Items => GetItems();
     /// <summary>Appends these entries in order.</summary>
-    public void Append(params MenuEntry[] items) => Set("append", NativeValues.Items(items));
+    public void Append(params MenuEntry[] items) => SetItems("append", items);
     /// <summary>Prepends these entries in order.</summary>
-    public void Prepend(params MenuEntry[] items) => Set("prepend", NativeValues.Items(items));
+    public void Prepend(params MenuEntry[] items) => SetItems("prepend", items);
     /// <summary>Inserts these entries at a zero-based position.</summary>
-    public void Insert(int position, params MenuEntry[] items) => Set("insert", NativeValues.Items(items), position);
+    public void Insert(int position, params MenuEntry[] items) => SetItems("insert", items, position);
     /// <summary>Removes an entry from this container without releasing other references.</summary>
     public void Remove(MenuEntry item) => Set("remove", item.Native);
     /// <summary>Removes the entry at a zero-based position and returns a new reference to dispose, or null if absent.</summary>
     public MenuEntry? RemoveAt(int position) => RemoveItemAt(position);
     /// <summary>Sets or clears the icon. Platform support follows upstream.</summary>
-    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => Set("set_icon", NativeValues.NullableIcon(icon), iconAsTemplate);
+    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => SetIconSource(icon, iconAsTemplate);
 
     /// <summary>Reads the macOS template icon state.</summary>
-    public bool IconIsTemplate()
-    {
-        using var result = Call("icon_is_template");
-        return result.AsBool();
-    }
+    public bool IconIsTemplate() => Call<bool>("icon_is_template");
 }

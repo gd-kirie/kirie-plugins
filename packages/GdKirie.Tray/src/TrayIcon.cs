@@ -10,7 +10,7 @@ public sealed class TrayIcon : TrayObject
     internal TrayIcon(RefCounted native) : base(native, "tray") { }
 
     /// <summary>Sets or clears the icon. Platform support follows upstream.</summary>
-    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => Set("set_icon", NativeValues.NullableIcon(icon), iconAsTemplate);
+    public void SetIcon(IconSource? icon, bool iconAsTemplate = false) => SetIconSource(icon, iconAsTemplate);
     /// <summary>Attaches a menu or submenu, or removes the menu with null.</summary>
     public void SetMenu(IMenuContainer? menu) => Set("set_menu", menu is null ? default(Variant) : ((TrayObject)menu).Native);
     /// <summary>Sets the tooltip, or clears it with null.</summary>
@@ -42,9 +42,5 @@ public sealed class TrayIcon : TrayObject
     }
 
     /// <summary>Reads the macOS template icon state.</summary>
-    public bool IconIsTemplate()
-    {
-        using var result = Call("icon_is_template");
-        return result.AsBool();
-    }
+    public bool IconIsTemplate() => Call<bool>("icon_is_template");
 }

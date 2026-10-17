@@ -68,13 +68,6 @@ pub fn optional_string(dictionary: &VarDictionary, key: &str) -> Result<Option<S
         .unwrap_or(Ok(None))
 }
 
-fn string_values(values: &VarArray) -> Result<Vec<String>> {
-    values
-        .iter_shared()
-        .map(|value| value.try_to::<String>().map_err(Into::into))
-        .collect()
-}
-
 #[derive(Debug)]
 pub enum IconSource {
     Resource {
@@ -207,13 +200,9 @@ pub fn about_metadata(dictionary: &VarDictionary) -> Result<tray_icon::menu::Abo
         authors: dictionary
             .get("authors")
             .filter(|value| !value.is_nil())
-            .map(|value| {
-                value
-                    .try_to::<VarArray>()
-                    .map_err(Error::from)
-                    .and_then(|values| string_values(&values))
-            })
-            .transpose()?,
+            .map(|value| value.try_to::<Vec<GString>>())
+            .transpose()?
+            .map(|values| values.into_iter().map(|value| value.to_string()).collect()),
         comments: optional_string(dictionary, "comments")?,
         copyright: optional_string(dictionary, "copyright")?,
         license: optional_string(dictionary, "license")?,

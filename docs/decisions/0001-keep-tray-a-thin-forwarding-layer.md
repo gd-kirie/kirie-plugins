@@ -39,11 +39,14 @@ Use explicit native parameters for types that Godot bindings can declare.
 Declare strings, booleans, menu item arrays, and positions with their Godot binding types.
 Let the binding check those types; do not repeat these checks inside operations.
 C# keeps its public options records and supplies their defaults as native arguments.
-C# fills a native-created `Array[KirieTrayItem]` because it cannot name GDExtension classes as generic array types.
+C# fills a native-created `Array[KirieTrayItem]` through an `Array<RefCounted>` view.
+The native factory preserves the runtime element type, which C# cannot name as a generic argument.
 Keep conversions for nullable scalars and union values that Godot cannot declare directly.
 Group the tray's remaining nullable options in one dictionary instead of a long `Variant` parameter list.
 Share predefined-item text conversion and wrapper construction; each entry still names its upstream constructor.
 Keep upstream error forwarding and checks required to prevent invalid native access.
+C# conversion helpers return concrete Godot collections. Convert arguments to `Variant` at dynamic calls and read known results through typed calls.
+Each C# wrapper retains one owning `Variant` for its independent native reference.
 
 Each C# wrapper owns an independent native reference. Menu queries return new
 references, without a managed identity cache. Dispose releases only that
