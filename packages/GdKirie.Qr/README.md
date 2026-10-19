@@ -82,7 +82,7 @@ The upstream Android QR scanner does not explicitly close each ML Kit scanner.
 This package preserves the upstream binary and does not fix that limitation.
 NativeCamera does not provide a camera-start error signal.
 Some capture errors only reach native logs, so the scan can remain open until cancellation.
-The upstream iOS release contains device slices only.
+The upstream iOS release requires iOS 16 or later and contains device slices only.
 Camera behavior requires device validation.
 
 NativeCamera queues frame signals on each platform's UI thread without a session ID.

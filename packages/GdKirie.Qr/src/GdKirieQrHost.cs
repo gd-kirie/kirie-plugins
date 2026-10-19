@@ -35,6 +35,7 @@ public sealed class GdKirieQrHost : IDisposable
     private readonly IDisposable[] _registrations;
     private Operation? _operation;
     private QrScanView? _view;
+    private Dictionary? _latestFrame;
     private bool _wasVisible;
     private bool _wasQuitOnGoBack;
     private bool _recognitionPending;
@@ -174,6 +175,7 @@ public sealed class GdKirieQrHost : IDisposable
     private void StartCamera()
     {
         _cameraStarted = true;
+        _tree.ProcessFrame += ProcessFrame;
         try
         {
             _operation!.Native.StartCamera();
@@ -229,7 +231,24 @@ public sealed class GdKirieQrHost : IDisposable
     private void OnFrame(Operation operation, Dictionary data)
     {
         if (!ReferenceEquals(_operation, operation) || operation.Finished || operation.Kind != ScanKind.Camera || !_cameraStarted)
+        {
+            data.Dispose();
             return;
+        }
+
+        // Deferred camera signals can arrive faster than rendering and recognition.
+        _latestFrame?.Dispose();
+        _latestFrame = data;
+    }
+
+    private void ProcessFrame()
+    {
+        using var data = _latestFrame;
+        _latestFrame = null;
+        if (data is null)
+            return;
+
+        var operation = _operation!;
         Image image;
         try
         {
@@ -296,8 +315,12 @@ public sealed class GdKirieQrHost : IDisposable
         if (_cameraStarted)
         {
             _cameraStarted = false;
+            _tree.ProcessFrame -= ProcessFrame;
             operation.Native.StopCamera();
         }
+
+        _latestFrame?.Dispose();
+        _latestFrame = null;
 
         if (_view is not null)
         {

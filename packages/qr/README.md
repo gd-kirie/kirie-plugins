@@ -72,7 +72,8 @@ Android uses the bundled ML Kit barcode model. It does not require an installed 
 The bundled package includes official transitive Google client libraries. The plugin does not remove these libraries.
 See the [ML Kit installation guide](https://developers.google.com/ml-kit/vision/barcode-scanning/android).
 
-The upstream iOS archives contain device libraries only. They do not contain simulator libraries.
+The upstream iOS archives require iOS 16 or later and contain device libraries only.
+They do not contain simulator libraries.
 The upstream Android scanner does not explicitly close its ML Kit scanner. This package does not patch that native implementation.
 NativeCamera does not expose a camera-start error signal. The wrapper cannot report native start failures that upstream only logs.
 NativeCamera also queues frames without a session ID. A queued native frame can reach a new scan after cancellation.

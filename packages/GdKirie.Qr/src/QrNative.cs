@@ -48,15 +48,17 @@ internal sealed class QrNative : IDisposable
             image.Convert(Image.Format.Rgba8);
         if (image.HasMipmaps())
             image.ClearMipmaps();
+        using var pixels = Variant.From(image.GetData());
         using var request = new Dictionary
         {
             ["width"] = image.GetWidth(),
             ["height"] = image.GetHeight(),
-            ["buffer"] = image.GetData(),
+            ["buffer"] = pixels,
             ["format"] = (int)Image.Format.Rgba8,
             ["has_mipmaps"] = false,
         };
-        _qr.Call("scan_qr", request);
+        using var nativeRequest = Variant.From(request);
+        _qr.Call("scan_qr", nativeRequest);
     }
 
     internal bool HasPermission() => _camera!.Call("has_camera_permission").AsBool();
@@ -102,7 +104,8 @@ internal sealed class QrNative : IDisposable
             throw new InvalidOperationException("The native plugin returned incomplete image data.");
         var width = data["width"].AsInt32();
         var height = data["height"].AsInt32();
-        var buffer = data["buffer"].AsByteArray();
+        using var pixelData = data["buffer"];
+        var buffer = pixelData.AsByteArray();
         if (width <= 0 || height <= 0 || (long)width * height * (grayscale ? 1 : 4) != buffer.LongLength)
             throw new InvalidOperationException("The native plugin returned invalid image dimensions or pixels.");
         var image = Image.CreateFromData(width, height, false, grayscale ? Image.Format.L8 : Image.Format.Rgba8, buffer);

@@ -18,7 +18,8 @@ Android uses only `com.google.mlkit:barcode-scanning:17.3.0`, which includes the
 The bundled package retains its official transitive API dependencies. Do not exclude those dependencies.
 The original QR AAR remains unchanged. The application does not offer an unbundled model option or model download management.
 
-The upstream QR iOS release contains device slices only. Device validation is required. Simulator packaging is outside this change.
+The upstream QR and NativeCamera iOS binaries require iOS 16 or later and contain device slices only.
+Device validation is required. Simulator packaging is outside this change.
 The upstream Android scanner has no explicit `close()` call. Record this limitation without adding an unapproved native patch.
 
 ## Packages
@@ -103,8 +104,8 @@ The headless Godot harness verifies JSON Eventa PNG requests, synchronous result
 These host tests use fake native singletons. They do not verify native QR recognition or camera capture.
 
 The Android emulator and physical Android checks in the next sections pass with real native plugins.
-iOS camera behavior remains unverified.
-The iOS XCFramework build cannot run because `xcodegen` is unavailable. The available iPhone is offline.
+The [iOS device results](#ios-device-preparation-2026-10-19) record camera recognition, cancellation, and background cleanup.
+The iOS Debug and Release XCFramework builds pass with Xcode 27.1 and XcodeGen 2.46.0.
 The example build also awaits publication of the new QR packages and updated core package pins.
 
 NativeCamera queues frames without a session ID or a stop acknowledgment.
@@ -207,7 +208,55 @@ The final package passes the existing host harness, browser tests, language chec
 The NuGet package, restored library, and exported Android library have matching hashes.
 On the physical device, the final APK passes PNG generation and recognition, Back cancellation, and background cancellation.
 Both cancellation paths release the camera and retain the application process and WebView.
-This simplification adds no iOS device evidence.
+This simplification adds no iOS camera evidence.
+
+## iOS device preparation: 2026-10-19
+
+The native core, integration fixture, and application examples now require iOS 16 or later.
+The upstream QR and NativeCamera binaries also target iOS 16.
+XcodeGen 2.46.0 is pinned through mise. The local .NET iOS workload is installed.
+
+An isolated QA application passes NativeAOT compilation for device arm64 and both simulator architectures.
+This managed compilation does not add simulator support to the upstream native plugins.
+Xcode 27.1 builds and signs the device application through a free Personal Team.
+The application installs and starts on an iPhone 16 Pro running iOS 27.0.1.
+The native WebView loads the packaged browser page.
+The QA application saves no camera frames.
+
+The temporary QA page initially omitted its UTF-8 declaration. Adding `meta charset="UTF-8"` fixes its visible arrow characters.
+The first device PNG roundtrip then exposes a separate upstream result-conversion defect.
+For input `Kirie QR device 中文 2026`, the returned Chinese text is mojibake; the ASCII prefix and suffix remain intact.
+The [iOS result bridge](https://github.com/godot-mobile-plugins/godot-qr/blob/v1.2/ios/src/qr_plugin.mm#L50) passes UTF-8 bytes directly into a Godot Variant.
+Godot's `const char *` conversion uses Latin-1; this bridge needs explicit UTF-8 decoding.
+The upstream source and packaged binaries remain unchanged. The proposed local patch was discarded at the user's request.
+Continue device validation with English ASCII payloads. Unicode result handling remains a known upstream limitation.
+
+The unmodified iOS libraries pass PNG generation and recognition for `Kirie QR device test 2026` (2975 PNG bytes).
+A blank PNG returns `null`; invalid PNG bytes reject with a readable decode error.
+The first camera permission request succeeds, but the preview is black and no code is returned.
+The cancel button returns `null` and restores the page.
+One diagnostic run terminates with signal 9 without user action. The termination cause remains unconfirmed.
+
+A temporary application calls NativeCamera directly, without WebView, preview, or QR recognition.
+It receives 82 frames in three seconds and stops through a Godot timer.
+The actual output is 1080 × 1920, despite the 1280 × 720 request.
+With Device Hub mirroring active, every pixel has value 16, even with an unobstructed lens.
+After Device Hub exits, the same application receives normal pixels and recognizes `kirie-qr-real-device-2026-10-19` in approximately 51 milliseconds.
+The application stops capture before this single recognition. It saves no camera images.
+Keep Device Hub mirroring closed during physical camera tests on this setup.
+
+The adapter also replaces obsolete queued frames before image conversion and preview upload.
+It processes the latest frame once per Godot render iteration and releases owned dictionaries and buffer Variants deterministically.
+The [Godot 4.7.2 Variant conversion](https://github.com/godotengine/godot/blob/4.7.2-stable/modules/mono/glue/GodotSharp/GodotSharp/Core/NativeInterop/VariantUtils.cs#L573-L580)
+creates an independently owned dictionary wrapper for each callback.
+Release and Debug builds, C# analyzers, and the existing headless QR runtime suite pass after this change.
+With mirroring closed, the complete Kirie flow returns `kirie-qr-real-device-2026-10-19` through browser IPC.
+The scanner closes after the first result and restores the WebView. The application remains alive.
+This device build contains no frame observer or pixel-statistics diagnostic.
+The user also confirms normal preview during approximately 30 seconds without a QR code.
+Selecting **Cancel** returns `null` through IPC and restores the WebView without application exit.
+Moving the application to the background also returns `null` and restores the WebView after foreground return.
+The user confirms that the camera indicator disappears. The device process keeps the same PID throughout these tests.
 
 ## Sources
 
