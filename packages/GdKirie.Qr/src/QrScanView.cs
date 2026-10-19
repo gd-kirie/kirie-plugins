@@ -61,8 +61,7 @@ internal sealed partial class QrScanView : CanvasLayer
 
     public override void _ExitTree()
     {
-        if (_window is not null)
-            _window.GoBackRequested -= OnBack;
+        _window?.GoBackRequested -= OnBack;
         _window = null;
         _preview.Texture = null;
         _texture?.Dispose();
