@@ -1,0 +1,11 @@
+config_version=5
+
+[application]
+config/name="Kirie QR runtime tests"
+run/main_scene="res://RuntimeTests.tscn"
+
+[dotnet]
+project/assembly_name="QrRuntimeTests"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

@@ -10,6 +10,7 @@ Runnable projects live in [kirie-examples](https://github.com/gd-kirie/kirie-exa
 | --- | --- | --- |
 | System tray | [@gd-kirie/tray](packages/tray/README.md) | [GdKirie.Tray](packages/GdKirie.Tray/README.md) |
 | Notifications | [@gd-kirie/notifications](packages/notifications/README.md) | [GdKirie.Notifications](packages/GdKirie.Notifications/README.md) |
+| QR codes | [@gd-kirie/qr](packages/qr/README.md) | [GdKirie.Qr](packages/GdKirie.Qr/README.md) |
 
 ## Development
 
