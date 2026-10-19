@@ -10,10 +10,7 @@ export class _ExportPlugin extends EditorExportPlugin {
   }
 
   _get_android_libraries(_platform: EditorExportPlatform | null, debug: boolean): PackedStringArray {
-    let mode = "release";
-    if (debug) {
-      mode = "debug";
-    }
+    const mode = debug ? "debug" : "release";
 
     const qr_library = `kirie_qr/vendor/qr-v1.2/android/${mode}/QRPlugin-${mode}.aar`;
     const camera_library = `kirie_qr/vendor/camera-v3.0/android/${mode}/NativeCameraPlugin-${mode}.aar`;
@@ -35,10 +32,7 @@ export class _ExportPlugin extends EditorExportPlugin {
       return;
     }
 
-    let mode = "release";
-    if (is_debug) {
-      mode = "debug";
-    }
+    const mode = is_debug ? "debug" : "release";
 
     for (const framework of [
       `res://addons/kirie_qr/vendor/qr-v1.2/ios/QRPlugin.${mode}.xcframework`,
@@ -61,10 +55,31 @@ export class _ExportPlugin extends EditorExportPlugin {
     }
 
     this.add_apple_embedded_platform_linker_flags("-ObjC");
-    this.add_apple_embedded_platform_cpp_code(_ExportPlugin.IOS_CPP);
-  }
+    // Preserve Godot's initializer chain for other enabled iOS plugins.
+    this.add_apple_embedded_platform_cpp_code(`
+extern void qr_plugin_init();
+extern void qr_plugin_deinit();
+extern void native_camera_plugin_init();
+extern void native_camera_plugin_deinit();
+void kirie_qr_generated_plugin_initialize();
+void kirie_qr_generated_plugin_deinitialize();
+
+void godot_apple_embedded_plugins_initialize() {
+  qr_plugin_init();
+  native_camera_plugin_init();
+  kirie_qr_generated_plugin_initialize();
 }
 
-export namespace _ExportPlugin {
-  export const IOS_CPP = "\nextern void qr_plugin_init();\nextern void qr_plugin_deinit();\nextern void native_camera_plugin_init();\nextern void native_camera_plugin_deinit();\nvoid kirie_qr_generated_plugin_initialize();\nvoid kirie_qr_generated_plugin_deinitialize();\nvoid godot_apple_embedded_plugins_initialize() {\n\tqr_plugin_init();\n\tnative_camera_plugin_init();\n\tkirie_qr_generated_plugin_initialize();\n}\nvoid godot_apple_embedded_plugins_deinitialize() {\n\tkirie_qr_generated_plugin_deinitialize();\n\tnative_camera_plugin_deinit();\n\tqr_plugin_deinit();\n}\n#undef godot_apple_embedded_plugins_initialize\n#undef godot_apple_embedded_plugins_deinitialize\n#define godot_apple_embedded_plugins_initialize kirie_qr_generated_plugin_initialize\n#define godot_apple_embedded_plugins_deinitialize kirie_qr_generated_plugin_deinitialize\n";
+void godot_apple_embedded_plugins_deinitialize() {
+  kirie_qr_generated_plugin_deinitialize();
+  native_camera_plugin_deinit();
+  qr_plugin_deinit();
+}
+
+#undef godot_apple_embedded_plugins_initialize
+#undef godot_apple_embedded_plugins_deinitialize
+#define godot_apple_embedded_plugins_initialize kirie_qr_generated_plugin_initialize
+#define godot_apple_embedded_plugins_deinitialize kirie_qr_generated_plugin_deinitialize
+`);
+  }
 }

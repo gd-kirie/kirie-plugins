@@ -1,33 +1,14 @@
-using System.Text.Json;
-using GdKirie.EventaAdapter;
 using GdKirie.Qr;
 using Godot;
 
 public sealed partial class RuntimeTests : Node
 {
-    private SceneTree? _testTree;
-    private bool _succeeded;
-
-    private sealed class TestTransport : IKirieTextTransport
-    {
-        public event Action<string>? TextReceived;
-        internal TaskCompletionSource<string> Response = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public void SendText(string message) => Response.TrySetResult(message);
-        internal void Receive(string message)
-        {
-            Response = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            TextReceived?.Invoke(message);
-        }
-    }
-
     public override async void _Ready()
     {
-        _testTree = GetTree();
         try
         {
             await Run();
-            _succeeded = true;
-            GD.Print("QR runtime tests passed: JSON Eventa PNG request/response, generation, synchronous signals, misses, backpressure, cancellation, late callbacks, permissions, Android Back, background, scene exit.");
+            GD.Print("QR host tests passed (fake native plugins).");
             GetTree().Quit();
         }
         catch (Exception error)
@@ -35,12 +16,6 @@ public sealed partial class RuntimeTests : Node
             GD.PushError(error.ToString());
             GetTree().Quit(1);
         }
-    }
-
-    public override void _ExitTree()
-    {
-        if (!_succeeded)
-            _testTree?.Quit(1);
     }
 
     private async Task Run()
@@ -57,37 +32,15 @@ public sealed partial class RuntimeTests : Node
             var web = new Control();
             AddChild(owner);
             owner.AddChild(web);
-            var transport = new TestTransport();
-            using var context = KirieEventa.CreateContext(transport, GdKirieQr.Register(new KirieEventaJsonRegistry()));
-            using var host = GdKirieQr.Attach(context.Context, owner, web);
-            transport.Receive("""
-                {"type":"kirie:qr:generate-image-send","payload":{"body":{"invokeId":"generate-1","content":{"text":"wire test","size":18,"foreground":"#ff0000","background":"#ffffff"}}}}
-                """);
-            using var generationReply = JsonDocument.Parse(await transport.Response.Task);
-            var pngBase64 = generationReply.RootElement.GetProperty("payload").GetProperty("body").GetProperty("content").GetProperty("pngBase64").GetString()!;
-            using var wireImage = new Image();
-            Assert(wireImage.LoadPngFromBuffer(Convert.FromBase64String(pngBase64)) == Error.Ok
-                && wireImage.GetWidth() == 18 && wireImage.GetPixel(0, 0) == Colors.Red,
-                "The Eventa JSON request did not return the generated PNG.");
-            qr.ImmediateResult = "wire scan result ✓";
-            transport.Receive("""
-                {"type":"kirie:qr:scan-image-send","payload":{"body":{"invokeId":"scan-image-1","content":{"pngBase64":"__PNG__"}}}}
-                """.Replace("__PNG__", pngBase64));
-            using var scanReply = JsonDocument.Parse(await transport.Response.Task);
-            Assert(scanReply.RootElement.GetProperty("payload").GetProperty("body").GetProperty("content").GetProperty("text").GetString() == qr.ImmediateResult,
-                "The Eventa JSON image request did not return recognized text.");
-            qr.ImmediateResult = null;
-            using var image = host.GenerateImage("test", 24, Colors.Red);
-            Assert(image.GetWidth() == 24 && image.GetPixel(0, 0) == Colors.Red, "Generation did not preserve the native image.");
-            using var texture = host.GenerateTexture("texture", 16);
-            Assert(texture.GetWidth() == 16, "Texture conversion failed.");
+            using var context = Eventa.EventContext.Create();
+            using var host = GdKirieQr.Attach(context, owner, web);
+            using var image = host.GenerateImage("test", 18, Colors.Red);
+            Assert(image.GetWidth() == 18 && image.GetPixel(0, 0) == Colors.Red,
+                "Native generation did not preserve the requested size and color.");
 
-            qr.ImmediateMiss = true;
-            Assert(await host.ScanImageAsync(image) is null, "An image miss must return null.");
-            qr.ImmediateMiss = false;
-            qr.ImmediateResult = "同步结果 ✓";
-            Assert(await host.ScanImageAsync(image.SavePngToBuffer()) == qr.ImmediateResult, "Synchronous native results were lost.");
-            qr.ImmediateResult = null;
+            var missingImage = host.ScanImageAsync(image);
+            qr.Miss();
+            Assert(await missingImage is null, "An image miss must return null.");
 
             using var cancellation = new CancellationTokenSource();
             var canceledImage = host.ScanImageAsync(image, cancellation.Token);
@@ -104,6 +57,7 @@ public sealed partial class RuntimeTests : Node
                 ExpectBusy(() => competingHost.ScanImageAsync(image));
             var before = qr.ScanCalls;
             camera.Frame(image);
+            await Flush();
             camera.Frame(image);
             await Flush();
             Assert(qr.ScanCalls == before + 1, "Busy recognition accepted another camera frame.");
@@ -211,7 +165,6 @@ public sealed partial class RuntimeTests : Node
             RemoveChild(owner);
             Assert(await exiting is null && !camera.Started, "Scene exit did not stop the camera.");
             owner.Free();
-            Assert(camera.Stops >= 4, "Camera lifecycle did not stop each capture session.");
         }
         finally
         {

@@ -6,8 +6,6 @@ public sealed partial class FakeQr : Node
     [Signal] public delegate void qr_detectedEventHandler(string text);
     [Signal] public delegate void qr_scan_failedEventHandler(Dictionary error);
 
-    public string? ImmediateResult { get; set; }
-    public bool ImmediateMiss { get; set; }
     public int ScanCalls { get; private set; }
 
     public Dictionary generate_qr(string text, int size, int foreground, int background)
@@ -21,11 +19,13 @@ public sealed partial class FakeQr : Node
 
     public void scan_qr(Dictionary image)
     {
+        using var pixels = image["buffer"];
+        if (image["format"].AsInt32() != (int)Image.Format.Rgba8
+            || image["has_mipmaps"].AsBool()
+            || pixels.AsByteArray().Length != image["width"].AsInt32() * image["height"].AsInt32() * 4)
+            throw new InvalidOperationException("The native QR scanner requires RGBA8 pixels without mipmaps.");
+
         ScanCalls++;
-        if (ImmediateResult is not null)
-            Detect(ImmediateResult);
-        else if (ImmediateMiss)
-            Miss();
     }
 
     public void Detect(string text) => EmitSignal(SignalName.qr_detected, text);

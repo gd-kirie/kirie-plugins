@@ -230,7 +230,7 @@ public sealed class GdKirieQrHost : IDisposable
 
     private void OnFrame(Operation operation, Dictionary data)
     {
-        if (!ReferenceEquals(_operation, operation) || operation.Finished || operation.Kind != ScanKind.Camera || !_cameraStarted)
+        if (!ReferenceEquals(_operation, operation) || !_cameraStarted)
         {
             data.Dispose();
             return;
@@ -279,8 +279,9 @@ public sealed class GdKirieQrHost : IDisposable
             ReleaseIfDrained();
     }
 
-    private void OnFailed(Operation operation, Dictionary error)
+    private void OnFailed(Operation operation, Dictionary errorData)
     {
+        using var error = errorData;
         if (!ReferenceEquals(_operation, operation) || !_recognitionPending)
             return;
         _recognitionPending = false;

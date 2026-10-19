@@ -24,7 +24,17 @@ export default defineConfig({
         replacement: `<Version>${operation.state.newVersion}</Version>`,
       },
       {
+        file: "packages/GdKirie.Qr/GdKirie.Qr.csproj",
+        pattern: /<Version>[^<]+<\/Version>/,
+        replacement: `<Version>${operation.state.newVersion}</Version>`,
+      },
+      {
         file: "packages/notifications/addon/kirie_notifications/plugin.cfg",
+        pattern: /version="[^"]+"/,
+        replacement: `version="${operation.state.newVersion}"`,
+      },
+      {
+        file: "packages/qr/addon/kirie_qr/plugin.cfg",
         pattern: /version="[^"]+"/,
         replacement: `version="${operation.state.newVersion}"`,
       },

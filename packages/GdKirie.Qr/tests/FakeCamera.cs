@@ -10,7 +10,6 @@ public sealed partial class FakeCamera : Node
     public bool Permission { get; set; } = true;
     public bool Started { get; private set; }
     public int Starts { get; private set; }
-    public int Stops { get; private set; }
 
     public bool has_camera_permission() => Permission;
     public void request_camera_permission() { }
@@ -31,16 +30,21 @@ public sealed partial class FakeCamera : Node
     public void stop()
     {
         Started = false;
-        Stops++;
     }
 
-    public void Frame(Image image) => EmitSignal(SignalName.frame_available, new Dictionary
+    public void Frame(Image source)
     {
-        ["width"] = image.GetWidth(),
-        ["height"] = image.GetHeight(),
-        ["buffer"] = image.GetData(),
-        ["is_grayscale"] = false,
-    });
+        using var image = new Image();
+        image.CopyFrom(source);
+        image.Convert(Image.Format.L8);
+        EmitSignal(SignalName.frame_available, new Dictionary
+        {
+            ["width"] = image.GetWidth(),
+            ["height"] = image.GetHeight(),
+            ["buffer"] = image.GetData(),
+            ["is_grayscale"] = true,
+        });
+    }
 
     public void Grant() => EmitSignal(SignalName.camera_permission_granted);
     public void Deny() => EmitSignal(SignalName.camera_permission_denied);

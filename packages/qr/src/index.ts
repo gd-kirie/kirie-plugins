@@ -38,10 +38,6 @@ function encodePng(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function decodePng(base64: string): Uint8Array {
-  return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
-}
-
 /** Creates a QR client that borrows the application's Eventa context. */
 export function createQrClient(context: KirieEventaContext): QrClient {
   const invoke = defineInvokes(context, { generateImage, scanImage, scan });
@@ -53,7 +49,7 @@ export function createQrClient(context: KirieEventaContext): QrClient {
         foreground: options.foreground ?? "#000000",
         background: options.background ?? "#ffffff",
       });
-      return decodePng(result.pngBase64);
+      return Uint8Array.from(atob(result.pngBase64), (character) => character.charCodeAt(0));
     },
     async scanImage(png) {
       return (await invoke.scanImage({ pngBase64: encodePng(png) })).text;

@@ -1,12 +1,12 @@
 # npm publishing
 
-This repository publishes `@gd-kirie/tray` and `@gd-kirie/notifications`.
+This repository publishes `@gd-kirie/tray`, `@gd-kirie/notifications`, and `@gd-kirie/qr`.
 Core npm packages are published from [gd-kirie](https://github.com/gd-kirie/gd-kirie).
 The plugin manifests use published core dependencies and point to this repository.
 
 ## Setup
 
-Move each plugin package's npm trusted publisher to this repository before release:
+Configure each plugin package's npm trusted publisher for this repository before release:
 
 - Owner: `gd-kirie`
 - Repository: `kirie-plugins`
@@ -15,7 +15,7 @@ Move each plugin package's npm trusted publisher to this repository before relea
 
 ## Release
 
-Run `mise run release` to update npm, NuGet, and notification addon versions.
+Run `mise run release` to update npm, NuGet, and addon versions.
 The release task builds packages, checks npm packing with a dry run, and creates a local commit and tag.
 Merge the release commit into main before pushing its `v*` tag.
 The workflow rejects tags that are not reachable from main.

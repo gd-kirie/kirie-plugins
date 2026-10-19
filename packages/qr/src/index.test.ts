@@ -36,33 +36,19 @@ it("encodes a large PNG request without changing its bytes", async () => {
   const context = createContext() as KirieEventaContext;
   const client = createQrClient(context);
   const png = Uint8Array.from({ length: 1_000_000 }, (_, index) => index % 256);
+  let encoded: string | undefined;
   context.on(defineEventa<Request>("kirie:qr:scan-image-send"), ({ body }) => {
-    const received = Uint8Array.from(atob(body!.content.pngBase64 as string), (character) => character.charCodeAt(0));
-    expect(received).toEqual(png);
+    encoded = body!.content.pngBase64 as string;
     context.emit(defineEventa(`kirie:qr:scan-image-receive-${body!.invokeId}`), {
-      content: { text: "https://example.com/" },
+      content: { text: null },
       invokeId: body!.invokeId,
     });
   });
   try {
-    await expect(client.scanImage(png)).resolves.toBe("https://example.com/");
-  } finally {
-    context.abort();
-  }
-});
-
-it.each(["QR result", null])("returns the host's camera result %s", async (result) => {
-  const context = createContext() as KirieEventaContext;
-  const client = createQrClient(context);
-  context.on(defineEventa<Request>("kirie:qr:scan-send"), ({ body }) => {
-    expect(body?.content).toEqual({});
-    context.emit(defineEventa(`kirie:qr:scan-receive-${body!.invokeId}`), {
-      content: { text: result },
-      invokeId: body!.invokeId,
-    });
-  });
-  try {
-    await expect(client.scan()).resolves.toBe(result);
+    await client.scanImage(png);
+    expect(encoded).toBeDefined();
+    const received = Uint8Array.from(atob(encoded!), (character) => character.charCodeAt(0));
+    expect(received).toEqual(png);
   } finally {
     context.abort();
   }

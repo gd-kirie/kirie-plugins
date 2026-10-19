@@ -108,10 +108,7 @@ internal sealed class QrNative : IDisposable
         var buffer = pixelData.AsByteArray();
         if (width <= 0 || height <= 0 || (long)width * height * (grayscale ? 1 : 4) != buffer.LongLength)
             throw new InvalidOperationException("The native plugin returned invalid image dimensions or pixels.");
-        var image = Image.CreateFromData(width, height, false, grayscale ? Image.Format.L8 : Image.Format.Rgba8, buffer);
-        if (grayscale)
-            image.Convert(Image.Format.Rgba8);
-        return image;
+        return Image.CreateFromData(width, height, false, grayscale ? Image.Format.L8 : Image.Format.Rgba8, buffer);
     }
 
     private static GodotObject GetSingleton(string name)
