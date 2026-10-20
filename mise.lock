@@ -978,7 +978,7 @@ conda_deps = [
 ]
 
 [[tools.dotnet]]
-version = "10.0.300"
+version = "10.0.402"
 backend = "core:dotnet"
 specifiers = ["10.0.300"]
 
