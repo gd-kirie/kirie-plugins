@@ -1,6 +1,6 @@
 import type { KirieEventaContext } from "@gd-kirie/ipc-eventa";
-import type { KiriePlugin } from "kirie/plugin";
 import { defineInvokeEventa, defineInvokes } from "@moeru/eventa";
+import { fromUint8Array, toUint8Array } from "js-base64";
 import { defineKiriePlugin } from "kirie/plugin";
 
 import packageJson from "../package.json" with { type: "json" };
@@ -30,14 +30,6 @@ const generateImage = defineInvokeEventa<PngPayload, Required<QrGenerateOptions>
 const scanImage = defineInvokeEventa<ScanResult, PngPayload>("kirie:qr:scan-image");
 const scan = defineInvokeEventa<ScanResult, Record<string, never>>("kirie:qr:scan");
 
-function encodePng(bytes: Uint8Array): string {
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-  }
-  return btoa(binary);
-}
-
 /** Creates a QR client that borrows the application's Eventa context. */
 export function createQrClient(context: KirieEventaContext): QrClient {
   const invoke = defineInvokes(context, { generateImage, scanImage, scan });
@@ -49,10 +41,10 @@ export function createQrClient(context: KirieEventaContext): QrClient {
         foreground: options.foreground ?? "#000000",
         background: options.background ?? "#ffffff",
       });
-      return Uint8Array.from(atob(result.pngBase64), (character) => character.charCodeAt(0));
+      return toUint8Array(result.pngBase64);
     },
     async scanImage(png) {
-      return (await invoke.scanImage({ pngBase64: encodePng(png) })).text;
+      return (await invoke.scanImage({ pngBase64: fromUint8Array(png) })).text;
     },
     async scan() {
       return (await invoke.scan({})).text;
@@ -70,7 +62,7 @@ const cameraArchive = {
   url: "https://github.com/godot-mobile-plugins/godot-native-camera/releases/download/v3.0/NativeCameraPlugin-Multi-v3.0.zip",
 };
 
-const qr: KiriePlugin = defineKiriePlugin({
+const qr = defineKiriePlugin({
   id: "qr",
   dotnetPackages: [{ id: "GdKirie.Qr", version: packageJson.version }],
   godotAddons: [
@@ -92,7 +84,7 @@ const qr: KiriePlugin = defineKiriePlugin({
     },
     {
       id: "godot-qr-ios",
-      path: "addons/kirie_qr/vendor/qr-v1.2/ios",
+      path: "ios/plugins/kirie_qr",
       source: {
         ...qrArchive,
         type: "remote",
@@ -112,7 +104,7 @@ const qr: KiriePlugin = defineKiriePlugin({
     },
     {
       id: "godot-native-camera-ios",
-      path: "addons/kirie_qr/vendor/camera-v3.0/ios",
+      path: "ios/plugins/kirie_camera",
       source: {
         ...cameraArchive,
         type: "remote",

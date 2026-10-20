@@ -32,11 +32,20 @@ pnpm kirie doctor --fix plugin:qr
 ```
 
 In Godot, enable **Kirie QR** under **Project Settings > Plugins**.
-For Android, enable Gradle export. For iOS, enter the camera usage description in the export preset.
-The wrapper export plugin installs the native dependencies. Do not enable the upstream editor plugins separately.
+For Android, enable Gradle export.
+Enter the camera usage description in the iOS export preset.
+
+The installer copies the upstream iOS plugins to `res://ios/plugins/kirie_qr` and `res://ios/plugins/kirie_camera`.
+Godot reads their original `.gdip` configuration files and generates the native initialization calls.
+This follows [Godot's iOS plugin installation procedure](https://docs.godotengine.org/en/stable/tutorials/platform/ios/ios_plugin.html#loading-and-using-an-existing-plugin).
+The Kirie QR export plugin supplies the required system frameworks and linker flags.
+It enables **QRPlugin** and **NativeCameraPlugin** through [Godot's export option overrides](https://docs.godotengine.org/en/stable/classes/class_editorexportplugin.html#class-editorexportplugin-method-get-export-options-overrides).
+Do not enable the upstream editor plugins separately.
+
+The npm package includes both plugins' copyright and MIT license in [THIRD_PARTY_NOTICES.txt](addon/kirie_qr/THIRD_PARTY_NOTICES.txt).
+The export plugin includes this notice in exported applications.
 
 Register and attach `GdKirie.Qr` as described in its [README](../GdKirie.Qr/README.md).
-The host borrows the existing scene owner, KirieNode, and Eventa context.
 
 ## Browser API
 

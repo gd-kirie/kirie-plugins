@@ -41,8 +41,8 @@ mise run lint
 ```
 
 Use `mise run format` to format source files.
-Edit notification addon code in `packages/notifications/src-godot`.
-The package build generates GDScript under its addon directory.
+Edit notification and QR addon code in their `src-godot` directories.
+Package builds generate GDScript under the corresponding addon directories.
 
 Release instructions are in [npm publishing](docs/npm-publishing.md) and
 [NuGet publishing](docs/nuget-publishing.md).

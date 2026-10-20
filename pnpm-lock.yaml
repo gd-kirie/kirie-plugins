@@ -188,6 +188,9 @@ importers:
       '@moeru/eventa':
         specifier: 'catalog:'
         version: 1.0.2(web-worker@1.5.0)
+      js-base64:
+        specifier: ^3.9.4
+        version: 3.9.4
       kirie:
         specifier: 0.14.2
         version: 0.14.2(jiti@2.7.0)(yaml@2.9.1)
@@ -1604,6 +1607,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  js-base64@3.9.4:
+    resolution: {integrity: sha512-PtOMXpEGuP0RRiRXsjzHzl44dMHxSu2CPvAhinupR1tBa88me+1DPqsobl7eupn5UukjLkln1ZnAOAOXOrYG0Q==}
 
   js-yaml@5.4.3:
     resolution: {integrity: sha512-yzzNtgczwgoVHNigCyKTXcQJU4Y8t/ikU4UxXW0BvrLfHTGWZhsNcOT2s/a7vn81/4KqVnNmHjaUEPlvWnNwVw==}
@@ -3784,6 +3790,8 @@ snapshots:
   isexe@2.0.0: {}
 
   jiti@2.7.0: {}
+
+  js-base64@3.9.4: {}
 
   js-yaml@5.4.3:
     dependencies:

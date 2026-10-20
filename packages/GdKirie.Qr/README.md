@@ -62,10 +62,8 @@ It restores the previous policy when the scan ends.
 The Eventa contracts carry PNG base64 fields and nullable text results.
 Godot images and camera frames stay in the host.
 
-The plugin installs unmodified [godot-qr v1.2](https://github.com/godot-mobile-plugins/godot-qr/tree/v1.2)
+The host uses unmodified [godot-qr v1.2](https://github.com/godot-mobile-plugins/godot-qr/tree/v1.2)
 and [NativeCamera v3.0](https://github.com/godot-mobile-plugins/godot-native-camera/tree/v3.0) artifacts.
-The plugin descriptor pins their release URLs and SHA-256 values.
-The npm package retains both MIT licenses under `addon/kirie_qr/licenses`.
 
 Android uses a [bundled ML Kit model](https://developers.google.com/ml-kit/vision/barcode-scanning/android).
 Offline scans require neither an installed GMS runtime nor an initial model download.
@@ -81,12 +79,3 @@ NativeCamera has no camera-start error signal. Some errors reach only native log
 Its [Android](https://github.com/godot-mobile-plugins/godot-native-camera/blob/v3.0/android/src/main/java/org/godotengine/plugin/nativecamera/NativeCameraPlugin.java#L335)
 and [iOS](https://github.com/godot-mobile-plugins/godot-native-camera/blob/v3.0/ios/src/NativeCamera.swift#L294) frame callbacks have no session IDs or stop acknowledgment.
 A queued frame that reaches a new subscription cannot identify its original scan.
-
-## Development
-
-Run the host harness with fake native singletons:
-
-```sh
-mise x -- dotnet build packages/GdKirie.Qr/tests/QrRuntimeTests.csproj
-mise x -- godot --headless --path packages/GdKirie.Qr/tests
-```

@@ -1,3 +1,15 @@
+Third-party notices for native plugins
+
+godot-qr v1.2
+Source: https://github.com/godot-mobile-plugins/godot-qr/tree/v1.2
+License: https://github.com/godot-mobile-plugins/godot-qr/blob/v1.2/LICENSE
+
+godot-native-camera v3.0
+Source: https://github.com/godot-mobile-plugins/godot-native-camera/tree/v3.0
+License: https://github.com/godot-mobile-plugins/godot-native-camera/blob/v3.0/LICENSE
+
+Both components use the following copyright notice and license.
+
 MIT License
 
 Copyright (c) 2025 Godot Mobile Plugins (https://github.com/godot-mobile-plugins)

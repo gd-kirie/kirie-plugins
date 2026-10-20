@@ -1,3 +1,8 @@
+interface QrExportOptionOverrides {
+  "plugins/QRPlugin"?: boolean;
+  "plugins/NativeCameraPlugin"?: boolean;
+}
+
 @tool
 export class _ExportPlugin extends EditorExportPlugin {
   _get_name(): string {
@@ -7,6 +12,17 @@ export class _ExportPlugin extends EditorExportPlugin {
   _supports_platform(platform: EditorExportPlatform): boolean {
     const os_name = platform.get_os_name().to_lower();
     return os_name === "android" || os_name === "ios";
+  }
+
+  _get_export_options_overrides(platform: EditorExportPlatform): QrExportOptionOverrides {
+    if (platform.get_os_name().to_lower() !== "ios") {
+      return {};
+    }
+
+    return {
+      "plugins/QRPlugin": true,
+      "plugins/NativeCameraPlugin": true,
+    };
   }
 
   _get_android_libraries(_platform: EditorExportPlatform | null, debug: boolean): PackedStringArray {
@@ -27,19 +43,12 @@ export class _ExportPlugin extends EditorExportPlugin {
     ]);
   }
 
-  _export_begin(features: PackedStringArray, is_debug: boolean, _path: string, _flags: int): void {
+  _export_begin(features: PackedStringArray, _is_debug: boolean, _path: string, _flags: int): void {
+    const notices_path = "res://addons/kirie_qr/THIRD_PARTY_NOTICES.txt";
+    this.add_file(notices_path, FileAccess.get_file_as_bytes(notices_path), false);
+
     if (!features.has("ios")) {
       return;
-    }
-
-    const mode = is_debug ? "debug" : "release";
-
-    for (const framework of [
-      `res://addons/kirie_qr/vendor/qr-v1.2/ios/QRPlugin.${mode}.xcframework`,
-      `res://addons/kirie_qr/vendor/camera-v3.0/ios/NativeCameraPlugin.${mode}.xcframework`,
-    ]) {
-      assert(DirAccess.dir_exists_absolute(framework), `iOS framework not found: ${framework}`);
-      this.add_apple_embedded_platform_framework(framework);
     }
 
     for (const system_framework of [
@@ -55,31 +64,5 @@ export class _ExportPlugin extends EditorExportPlugin {
     }
 
     this.add_apple_embedded_platform_linker_flags("-ObjC");
-    // Preserve Godot's initializer chain for other enabled iOS plugins.
-    this.add_apple_embedded_platform_cpp_code(`
-extern void qr_plugin_init();
-extern void qr_plugin_deinit();
-extern void native_camera_plugin_init();
-extern void native_camera_plugin_deinit();
-void kirie_qr_generated_plugin_initialize();
-void kirie_qr_generated_plugin_deinitialize();
-
-void godot_apple_embedded_plugins_initialize() {
-  qr_plugin_init();
-  native_camera_plugin_init();
-  kirie_qr_generated_plugin_initialize();
-}
-
-void godot_apple_embedded_plugins_deinitialize() {
-  kirie_qr_generated_plugin_deinitialize();
-  native_camera_plugin_deinit();
-  qr_plugin_deinit();
-}
-
-#undef godot_apple_embedded_plugins_initialize
-#undef godot_apple_embedded_plugins_deinitialize
-#define godot_apple_embedded_plugins_initialize kirie_qr_generated_plugin_initialize
-#define godot_apple_embedded_plugins_deinitialize kirie_qr_generated_plugin_deinitialize
-`);
   }
 }

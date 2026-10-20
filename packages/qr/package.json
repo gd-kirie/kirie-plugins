@@ -9,8 +9,16 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "import": "./src/index.ts" } },
-  "files": [".gdignore", "addon", "dist"],
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    ".gdignore",
+    "addon",
+    "dist"
+  ],
   "scripts": {
     "build": "pnpm run generate:godot && tsdown",
     "generate:godot": "pnpm run typecheck:godot && tstogd convert --no-check",
@@ -22,6 +30,7 @@
   "dependencies": {
     "@gd-kirie/ipc-eventa": "0.14.2",
     "@moeru/eventa": "catalog:",
+    "js-base64": "^3.9.4",
     "kirie": "0.14.2"
   },
   "devDependencies": {
@@ -33,6 +42,11 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org",
-    "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } }
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
   }
 }
