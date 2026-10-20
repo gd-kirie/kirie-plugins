@@ -978,9 +978,9 @@ conda_deps = [
 ]
 
 [[tools.dotnet]]
-version = "10.0.300"
+version = "10.0.402"
 backend = "core:dotnet"
-specifiers = ["10.0.300"]
+specifiers = ["10.0.402"]
 
 [[tools.godot]]
 version = "4.7.2-stable_mono"
