@@ -1,6 +1,6 @@
 {
   "name": "kirie-plugins",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.3.4",
@@ -17,6 +17,6 @@
     "bumpp": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
-    "kirie": "0.14.2"
+    "kirie": "0.15.0"
   }
 }
