@@ -8,7 +8,7 @@
     <!-- This library does not provide the application's Godot entry point. -->
     <GodotDisabledSourceGenerators>GodotPluginsInitializer</GodotDisabledSourceGenerators>
     <PackageId>GdKirie.Tray</PackageId>
-    <Version>0.14.1</Version>
+    <Version>0.15.0</Version>
     <Authors>Moeru AI</Authors>
     <Description>Native system tray and menu objects with Kirie Eventa integration.</Description>
     <PackageTags>godot;kirie;eventa;tray;menu;status-item</PackageTags>
@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GdKirie.EventaAdapter" Version="0.14.2" ExcludeAssets="contentFiles" />
+    <PackageReference Include="GdKirie.EventaAdapter" Version="0.15.0" ExcludeAssets="contentFiles" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

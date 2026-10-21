@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <PackageId>GdKirie.Qr</PackageId>
-    <Version>0.14.1</Version>
+    <Version>0.15.0</Version>
     <Authors>Moeru AI</Authors>
     <Description>QR generation and mobile camera scanning over Kirie Eventa IPC.</Description>
     <PackageTags>godot;kirie;eventa;qr</PackageTags>
@@ -20,7 +20,7 @@
     <PackageOutputPath>bin/$(Configuration)</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GdKirie.EventaAdapter" Version="0.14.2" ExcludeAssets="contentFiles" />
+    <PackageReference Include="GdKirie.EventaAdapter" Version="0.15.0" ExcludeAssets="contentFiles" />
   </ItemGroup>
   <ItemGroup><None Include="README.md" Pack="true" PackagePath="\" /></ItemGroup>
 </Project>

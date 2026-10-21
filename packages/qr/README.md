@@ -6,10 +6,9 @@ Permission errors and native errors reject the request.
 
 ## Install
 
-The QR packages and required core visibility change await a coordinated release.
-Published core `0.14.2` does not provide the camera preview's visibility behavior.
+The QR camera preview requires Kirie core `0.15.0` or later for native WebView visibility.
 
-After the coordinated release, install the browser package:
+Install the browser package:
 
 ```sh
 pnpm add @gd-kirie/qr

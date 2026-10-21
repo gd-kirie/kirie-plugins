@@ -4,7 +4,10 @@
 node_modules/
 .pnpm-store/
 apm_modules/
-/.agents/skills/
+# APM resolves other skills from apm.yml and apm.lock.yaml.
+/.agents/skills/*
+!/.agents/skills/kirie-plugins-release/
+!/.agents/skills/kirie-plugins-release/**
 dist/
 build/
 bin/

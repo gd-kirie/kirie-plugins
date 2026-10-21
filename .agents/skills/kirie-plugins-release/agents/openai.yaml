@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kirie Plugins Release"
+  short_description: "Release Kirie plugins to npm and NuGet"
+  default_prompt: "Use $kirie-plugins-release to prepare and publish the next plugin version."
