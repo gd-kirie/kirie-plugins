@@ -13,6 +13,7 @@ artifacts/
 packages/tray/addon/
 packages/*/src-godot/_typings/
 packages/notifications/addon/kirie_notifications/*.gd
+packages/qr/addon/kirie_qr/*.gd
 /target/
 *.aar
 *.xcframework

@@ -96,14 +96,6 @@ The adapter keeps its public types and namespace within that assembly.
 - [Eventa integration](../../packages/GdKirie.Tray/src/EventaAdapter/) registers browser methods and manages browser references.
 - [Plugin descriptor](../../packages/tray/src/plugin.ts) installs GdKirie.Tray and the native addon.
 
-## Verification
-
-- [x] Build the .NET solution with `mise run build:dotnet`.
-- [x] Pack the plugins with `mise run pack:nuget`.
-- [x] Verify that GdKirie.Tray includes adapter types and depends on the published GdKirie.EventaAdapter package.
-- [x] Run `mise run typecheck`.
-- [x] Run `mise run test:unit` to verify the browser contracts.
-
 ## References
 
 - [tray-icon API](https://github.com/tauri-apps/tray-icon/blob/17e3196a15aa6174a21588ac4c5a52e322878479/src/lib.rs)

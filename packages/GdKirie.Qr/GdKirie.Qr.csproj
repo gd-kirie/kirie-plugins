@@ -1,0 +1,26 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <PackageId>GdKirie.Qr</PackageId>
+    <Version>0.14.1</Version>
+    <Authors>Moeru AI</Authors>
+    <Description>QR generation and mobile camera scanning over Kirie Eventa IPC.</Description>
+    <PackageTags>godot;kirie;eventa;qr</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/gd-kirie/kirie-plugins</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gd-kirie/kirie-plugins</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageOutputPath>bin/$(Configuration)</PackageOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GdKirie.EventaAdapter" Version="0.14.2" ExcludeAssets="contentFiles" />
+  </ItemGroup>
+  <ItemGroup><None Include="README.md" Pack="true" PackagePath="\" /></ItemGroup>
+</Project>

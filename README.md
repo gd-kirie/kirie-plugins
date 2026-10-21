@@ -10,6 +10,7 @@ Runnable projects live in [kirie-examples](https://github.com/gd-kirie/kirie-exa
 | --- | --- | --- |
 | System tray | [@gd-kirie/tray](packages/tray/README.md) | [GdKirie.Tray](packages/GdKirie.Tray/README.md) |
 | Notifications | [@gd-kirie/notifications](packages/notifications/README.md) | [GdKirie.Notifications](packages/GdKirie.Notifications/README.md) |
+| QR codes | [@gd-kirie/qr](packages/qr/README.md) | [GdKirie.Qr](packages/GdKirie.Qr/README.md) |
 
 ## Development
 
@@ -40,8 +41,8 @@ mise run lint
 ```
 
 Use `mise run format` to format source files.
-Edit notification addon code in `packages/notifications/src-godot`.
-The package build generates GDScript under its addon directory.
+Edit notification and QR addon code in their `src-godot` directories.
+Package builds generate GDScript under the corresponding addon directories.
 
 Release instructions are in [npm publishing](docs/npm-publishing.md) and
 [NuGet publishing](docs/nuget-publishing.md).

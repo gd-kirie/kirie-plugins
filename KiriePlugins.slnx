@@ -2,5 +2,6 @@
   <Folder Name="/packages/">
     <Project Path="packages/GdKirie.Tray/GdKirie.Tray.csproj" />
     <Project Path="packages/GdKirie.Notifications/GdKirie.Notifications.csproj" />
+    <Project Path="packages/GdKirie.Qr/GdKirie.Qr.csproj" />
   </Folder>
 </Solution>
