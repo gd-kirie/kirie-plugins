@@ -9,6 +9,8 @@ Release `gd-kirie/kirie-plugins` through a pull request, then tag its merged com
 Include every publishable plugin present in the target revision.
 Keep the npm, NuGet, and Godot addon versions aligned across that release.
 Core Kirie packages, templates, and examples have separate releases.
+Core lives in [`gd-kirie/gd-kirie`](https://github.com/gd-kirie/gd-kirie).
+This workflow consumes its published packages without changing or releasing that repository.
 
 ## Release rules
 
@@ -17,7 +19,8 @@ Core Kirie packages, templates, and examples have separate releases.
 - Read the current checks and publishing workflows under `.github/workflows/` before publishing.
 - Use a clean checkout. If unrelated changes exist, preserve them and stop.
 - Run language and package tools through mise.
-- Keep the published core dependencies unchanged unless the user requests an upgrade.
+- Synchronize published Kirie core dependencies as part of each plugin release. This step needs no separate upgrade approval.
+- Keep tools and third-party native dependencies outside this core update.
 - Keep generated addons, native libraries, and package artifacts outside Git.
 - Do not replace an existing remote tag or published package version.
 - Preserve the configured Git identity and signer in the default mode.
@@ -51,6 +54,7 @@ Do not assume that every plugin has both npm and NuGet packages.
 5. Read the included plugins' build scripts and addon metadata to identify tracked and generated addon versions.
 6. Compare this inventory with workspace membership, solution membership, `bump.config.ts`, and the packages selected by the publishing workflows.
 7. Record the build, test, packing, and native artifact requirements for every included plugin.
+8. Record all Kirie core references in root and workspace manifests, catalogs, NuGet projects, and imported properties.
 
 Exclude private npm packages and non-packable .NET projects from publication.
 Include the root release version and other version sources selected by the release configuration in the version update.
@@ -66,7 +70,8 @@ Use package metadata and build scripts to determine whether auxiliary crate or p
 4. Create branch `release/v<VERSION>` from `origin/main` and switch to it.
 5. Refresh the release inventory from this branch before changing versions.
 6. Install dependencies with `mise x -- pnpm install --frozen-lockfile`.
-7. Run bumpp without creating a commit or tag:
+7. Synchronize core dependencies as described below.
+8. Run bumpp without creating a commit or tag:
 
    ```sh
    mise x -- pnpm exec bumpp --release "$KIRIE_PLUGINS_RELEASE_VERSION" --recursive --no-commit --no-tag --no-push --yes
@@ -82,6 +87,21 @@ Its defaults create a local commit and tag before the merge.
 If bumpp fails after changing files, examine the partial state before another run.
 The hook rejects unchanged version fields, so a blind retry can fail again.
 
+### Synchronize core dependencies
+
+Set `KIRIE_CORE_RELEASE_VERSION` to `KIRIE_PLUGINS_RELEASE_VERSION`, unless the user specifies another core version.
+Use registry metadata and the core release notes to make sure that every required package exists and supports the plugins.
+If a required package is unavailable or incompatible, report the exact package and version, then wait for resolution.
+Do not release core, substitute another version, or use a sibling checkout as a dependency.
+
+Update every discovered core reference to the selected version, including development, optional, and peer dependencies.
+Preserve existing range operators and catalog references. Update the underlying catalog or imported property when it owns the version.
+Reconcile existing version-specific core entries in `minimumReleaseAgeExclude` with the selected versions.
+Do not add exceptions or weaken the package manager's release-age policy.
+Regenerate `pnpm-lock.yaml` with `mise x -- pnpm install`.
+Keep lockfile changes limited to the core update and its required dependency changes.
+Update documented core requirements when the selected version changes them.
+
 ## 3. Examine the release diff
 
 Make sure that these discovered release fields contain `KIRIE_PLUGINS_RELEASE_VERSION`:
@@ -96,8 +116,8 @@ Compare the resulting versions with the inventory, not only the paths already li
 
 1. Run `git diff --check`.
 2. Examine `git diff --stat` and the complete `git diff`.
-3. Make sure that core dependency versions remain unchanged unless the user requested their upgrade.
-4. Make sure that no generated artifacts or unexpected lockfile changes exist.
+3. Compare every core dependency reference with the inventory and `KIRIE_CORE_RELEASE_VERSION`.
+4. Make sure that lockfile changes follow the core update and that no generated artifacts exist in the diff.
 5. Make sure that bumpp created no commit and no tag.
 6. Refresh the frozen dependency state with `mise x -- pnpm install --frozen-lockfile`.
 
@@ -156,6 +176,7 @@ Do not use the branch commit SHA because squash and rebase can change it.
 1. Fetch `origin/main` and the remote tags.
 2. Make sure that `MERGE_SHA` is reachable from `origin/main`.
 3. Refresh the release inventory at `MERGE_SHA` and make sure that every included version matches the target.
+   Make sure that all core references and the lockfile match the selected core version and preserve the intended ranges.
 4. Make sure that tag `v<VERSION>` does not exist locally or remotely.
 5. Create lightweight tag `v<VERSION>` at `MERGE_SHA`.
 6. Push only `refs/tags/v<VERSION>` to `origin`.

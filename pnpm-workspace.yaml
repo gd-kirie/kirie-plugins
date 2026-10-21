@@ -18,7 +18,7 @@ catalog:
   vitest: 4.1.10
 
 minimumReleaseAgeExclude:
-  - '@gd-kirie/build@0.14.2'
-  - '@gd-kirie/ipc-eventa@0.14.2'
-  - '@gd-kirie/ipc@0.14.2'
-  - kirie@0.14.2
+  - '@gd-kirie/build@0.15.0'
+  - '@gd-kirie/ipc-eventa@0.15.0'
+  - '@gd-kirie/ipc@0.15.0'
+  - kirie@0.15.0
