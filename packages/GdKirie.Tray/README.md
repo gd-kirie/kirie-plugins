@@ -39,6 +39,13 @@ Keep `res://tray.svg` in the Godot project.
 Keep these objects alive while the application runs.
 Dispose them on Godot's main thread during shutdown.
 
+### Sharp macOS icons
+
+`Resource` and `Rgba` icons take an optional `Scale`, in pixels per point.
+On macOS, `new IconSource.Resource("res://tray.png", Scale: 2)` draws a 32 pixel icon at 16 points, and the icon stays sharp on Retina displays.
+Without `Scale`, the same icon is drawn at 22 points.
+Windows and Linux ignore `Scale`. Menu icons accept only the default value of 1.
+
 ## Browser access
 
 Register the tray contracts before you create the application's Eventa context:

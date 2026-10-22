@@ -4,9 +4,15 @@ namespace GdKirie.Tray;
 public abstract record IconSource
 {
     /// <summary>A Godot resource containing a texture.</summary>
-    public sealed record Resource(string Path) : IconSource;
+    /// <param name="Path">The texture resource path.</param>
+    /// <param name="Scale">Texture pixels per point. On macOS, a 32 pixel tray icon with scale 2 is drawn at 16 points. Windows and Linux ignore it. Menu icons require 1.</param>
+    public sealed record Resource(string Path, double Scale = 1) : IconSource;
     /// <summary>RGBA pixels in row-major order.</summary>
-    public sealed record Rgba(byte[] Pixels, uint Width, uint Height) : IconSource;
+    /// <param name="Pixels">The RGBA bytes.</param>
+    /// <param name="Width">The width in pixels.</param>
+    /// <param name="Height">The height in pixels.</param>
+    /// <param name="Scale">Pixels per point. On macOS, a 32 pixel tray icon with scale 2 is drawn at 16 points. Windows and Linux ignore it. Menu icons require 1.</param>
+    public sealed record Rgba(byte[] Pixels, uint Width, uint Height, double Scale = 1) : IconSource;
     /// <summary>A public upstream NativeIcon variant name, such as Folder or StatusAvailable.</summary>
     public sealed record Native(string Name) : IconSource;
     /// <summary>A macOS system image name or a Linux theme icon name.</summary>

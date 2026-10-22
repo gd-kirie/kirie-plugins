@@ -7,8 +7,8 @@ export interface Resource {
 }
 
 export type IconSource =
-  | { kind: "resource"; path: string } |
-  { kind: "rgba"; rgba: readonly number[]; width: number; height: number } |
+  | { kind: "resource"; path: string; scale?: number } |
+  { kind: "rgba"; rgba: readonly number[]; width: number; height: number; scale?: number } |
   { kind: "native" | "native-name"; name: string } |
   { kind: "windows-stock"; id: number } |
   { kind: "windows-path"; path: string; width?: number; height?: number } |

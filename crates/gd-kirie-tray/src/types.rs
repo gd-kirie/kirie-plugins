@@ -72,11 +72,13 @@ pub fn optional_string(dictionary: &VarDictionary, key: &str) -> Result<Option<S
 pub enum IconSource {
     Resource {
         path: String,
+        scale: f64,
     },
     Rgba {
         rgba: Vec<u8>,
         width: u32,
         height: u32,
+        scale: f64,
     },
     Native {
         name: String,
@@ -114,11 +116,13 @@ impl IconSource {
         match kind.as_str() {
             "resource" => Ok(Some(Self::Resource {
                 path: required::<String>(&dictionary, "path")?,
+                scale: icon_scale(&dictionary)?,
             })),
             "rgba" => Ok(Some(Self::Rgba {
                 rgba: required::<PackedByteArray>(&dictionary, "rgba")?.to_vec(),
                 width: required(&dictionary, "width")?,
                 height: required(&dictionary, "height")?,
+                scale: icon_scale(&dictionary)?,
             })),
             "native" | "native-name" => {
                 let name = required::<String>(&dictionary, "name")?;
@@ -160,6 +164,26 @@ impl IconSource {
             )),
         }
     }
+}
+
+/// Reads the optional pixels-per-point scale of a custom icon. Godot callers may pass an integer.
+fn icon_scale(dictionary: &VarDictionary) -> Result<f64> {
+    let Some(value) = dictionary.get("scale") else {
+        return Ok(1.0);
+    };
+    let scale = if value.get_type() == VariantType::INT {
+        value.try_to::<i64>()? as f64
+    } else {
+        value.try_to::<f64>()?
+    };
+    // Upstream panics on scale factors that dpi rejects.
+    if !tray_icon::dpi::validate_scale_factor(scale) {
+        return Err(Error::new(
+            "invalid-argument",
+            format!("icon scale must be a normal positive number, got {scale}"),
+        ));
+    }
+    Ok(scale)
 }
 
 #[derive(Debug)]

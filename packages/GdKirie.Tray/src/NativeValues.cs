@@ -19,12 +19,14 @@ internal static class NativeValues
             case IconSource.Resource icon:
                 result["kind"] = "resource";
                 result["path"] = icon.Path;
+                result["scale"] = icon.Scale;
                 break;
             case IconSource.Rgba icon:
                 result["kind"] = "rgba";
                 result["rgba"] = icon.Pixels;
                 result["width"] = icon.Width;
                 result["height"] = icon.Height;
+                result["scale"] = icon.Scale;
                 break;
             case IconSource.Native icon:
                 result["kind"] = "native";

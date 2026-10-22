@@ -49,14 +49,15 @@ pub fn classify(source: IconSource) -> Result<IconValue> {
     }
 }
 
-fn pixels(source: IconSource) -> Result<(Vec<u8>, u32, u32)> {
-    let (rgba, width, height) = match source {
+fn pixels(source: IconSource) -> Result<(Vec<u8>, u32, u32, f64)> {
+    let (rgba, width, height, scale) = match source {
         IconSource::Rgba {
             rgba,
             width,
             height,
-        } => (rgba, width, height),
-        IconSource::Resource { path } => {
+            scale,
+        } => (rgba, width, height, scale),
+        IconSource::Resource { path, scale } => {
             let resource = ResourceLoader::singleton()
                 .load(path.as_str())
                 .ok_or_else(|| {
@@ -86,6 +87,7 @@ fn pixels(source: IconSource) -> Result<(Vec<u8>, u32, u32)> {
                 image.get_data().to_vec(),
                 image.get_width() as u32,
                 image.get_height() as u32,
+                scale,
             )
         }
         _ => {
@@ -99,7 +101,7 @@ fn pixels(source: IconSource) -> Result<(Vec<u8>, u32, u32)> {
     width
         .checked_mul(height)
         .ok_or_else(|| Error::new("invalid-argument", "icon dimensions overflow u32"))?;
-    Ok((rgba, width, height))
+    Ok((rgba, width, height, scale))
 }
 
 pub fn tray(source: IconSource) -> Result<Icon> {
@@ -153,8 +155,8 @@ pub fn tray(source: IconSource) -> Result<Icon> {
             }
         }
         source => {
-            let (rgba, width, height) = pixels(source)?;
-            Icon::from_rgba(rgba, width, height)
+            let (rgba, width, height, scale) = pixels(source)?;
+            Icon::from_rgba_with_scale(rgba, width, height, scale)
                 .map_err(|error| Error::new("invalid-argument", error))
         }
     }
@@ -205,7 +207,12 @@ pub fn menu(source: IconSource) -> Result<MenuIcon> {
             ))
         }
         source => {
-            let (rgba, width, height) = pixels(source)?;
+            let (rgba, width, height, scale) = pixels(source)?;
+            if scale != 1.0 {
+                return Err(Error::unsupported(
+                    "menu icons do not support an icon scale",
+                ));
+            }
             MenuIcon::from_rgba(rgba, width, height)
                 .map_err(|error| Error::new("invalid-argument", error))
         }
@@ -332,6 +339,7 @@ mod tests {
                 rgba: vec![],
                 width: u32::MAX,
                 height: u32::MAX,
+                scale: 1.0,
             })
             .is_err()
         );
@@ -340,11 +348,29 @@ mod tests {
             rgba: vec![0; 3],
             width: 1,
             height: 1,
+            scale: 1.0,
         })
         .unwrap_err();
         assert_eq!(
             error.message,
             Icon::from_rgba(vec![0; 3], 1, 1).unwrap_err().to_string()
         );
+    }
+
+    #[test]
+    fn scales_tray_icons_and_rejects_scaled_menu_icons() {
+        let source = || IconSource::Rgba {
+            rgba: vec![0; 32 * 32 * 4],
+            width: 32,
+            height: 32,
+            scale: 2.0,
+        };
+
+        assert!(tray(source()).is_ok());
+
+        let Err(error) = menu(source()) else {
+            panic!("scaled menu icon was accepted");
+        };
+        assert_eq!(error.code, "unsupported");
     }
 }

@@ -1,3 +1,8 @@
 [workspace]
 members = ["crates/gd-kirie-tray"]
 resolver = "3"
+
+# Temporary: verifies Icon::from_rgba_with_scale before it lands upstream.
+# Remove after tray-icon publishes it.
+[patch.crates-io]
+tray-icon = { git = "https://github.com/BeanDz/tray-icon", rev = "4992e913ea51a95977b3e528b5f77815c29fe8f0" }

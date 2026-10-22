@@ -102,14 +102,14 @@ internal abstract record RemoteIcon
 {
     internal abstract IconSource ToSdk();
 
-    internal sealed record ResourceTexture(string Path) : RemoteIcon
+    internal sealed record ResourceTexture(string Path, double Scale = 1) : RemoteIcon
     {
-        internal override IconSource ToSdk() => new IconSource.Resource(Path);
+        internal override IconSource ToSdk() => new IconSource.Resource(Path, Scale);
     }
 
-    internal sealed record RgbaPixels(List<byte> Rgba, uint Width, uint Height) : RemoteIcon
+    internal sealed record RgbaPixels(List<byte> Rgba, uint Width, uint Height, double Scale = 1) : RemoteIcon
     {
-        internal override IconSource ToSdk() => new IconSource.Rgba(Rgba.ToArray(), Width, Height);
+        internal override IconSource ToSdk() => new IconSource.Rgba(Rgba.ToArray(), Width, Height, Scale);
     }
 
     internal sealed record Native(string Name) : RemoteIcon

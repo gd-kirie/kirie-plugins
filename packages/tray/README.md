@@ -61,5 +61,9 @@ Keep `res://tray.svg` in the Godot project.
 Call `stopEvents()` when the page closes.
 Release browser handles with `close()` when they are no longer needed.
 
+`resource` and `rgba` icons take an optional `scale`, in pixels per point.
+On macOS, `{ kind: "resource", path: "res://tray.png", scale: 2 }` draws a 32 pixel icon at 16 points, and the icon stays sharp on Retina displays.
+Windows and Linux ignore `scale`. Menu icons accept only the default value of 1.
+
 See [GdKirie.Tray](../GdKirie.Tray/README.md) for C# usage and the
 [tray example](https://github.com/gd-kirie/kirie-examples/blob/main/examples/tray/README.md) for a complete application.
