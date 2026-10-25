@@ -12,7 +12,7 @@ pnpm = "12.15.0"
 dotnet = "10.0.402"
 rust = { version = "1.99.1", components = ["clippy", "rustfmt"] }
 clang = { version = "23.1.4", os = ["linux"] }
-"pipx:apm-cli" = "0.34.0"
+"pipx:apm-cli" = "0.35.0"
 
 [env]
 CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER = "clang"

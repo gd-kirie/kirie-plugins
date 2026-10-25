@@ -12,7 +12,7 @@ catalog:
   bumpp: ^12.3.0
   eslint: ^10.13.0
   eslint-plugin-format: ^2.0.1
-  tsdown: ^0.23.1
+  tsdown: ^0.23.2
   typescript: ^6.0.3
   typescript-to-gdscript: ^0.1.12
   vitest: 4.1.12
