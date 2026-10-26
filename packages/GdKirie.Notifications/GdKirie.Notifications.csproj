@@ -22,7 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GdKirie.EventaAdapter" Version="0.15.0" ExcludeAssets="contentFiles" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.298" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.367" PrivateAssets="all" />
     <PackageReference Include="RumpSharp" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup><None Include="README.md" Pack="true" PackagePath="\" /></ItemGroup>

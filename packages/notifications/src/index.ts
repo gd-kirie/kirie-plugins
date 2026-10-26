@@ -26,8 +26,8 @@ const showNotification = defineInvokeEventa<EmptyPayload, NotificationRequest>(
   "kirie:notifications:show",
 );
 
-export const notificationActivated: InboundEventa<NotificationActivated> =
-  defineInboundEventa<NotificationActivated>("kirie:notifications:activated");
+export const notificationActivated: InboundEventa<NotificationActivated>
+  = defineInboundEventa<NotificationActivated>("kirie:notifications:activated");
 
 export function createNotificationsClient(context: KirieEventaContext): NotificationsClient {
   const show = defineInvokes(context, { showNotification }).showNotification;
@@ -40,7 +40,9 @@ export function createNotificationsClient(context: KirieEventaContext): Notifica
 
 const notifications: KiriePlugin = defineKiriePlugin({
   id: "notifications",
-  dotnetPackages: [{ id: "GdKirie.Notifications", version: packageJson.version }],
+  dotnetPackages: [
+    { id: "GdKirie.Notifications", version: packageJson.version },
+  ],
   godotAddons: [
     {
       id: "kirie-notifications",
