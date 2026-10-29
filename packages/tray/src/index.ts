@@ -143,7 +143,9 @@ export class TrayIcon extends TrayObject {
   async setMenu(menu: Menu | Submenu | null): Promise<void> {
     await this.connection.request("tray.set-menu", {
       handle: this.handle,
-      menu: menu === null ? null : this.connection.handle(menu),
+      menu: menu === null
+        ? null
+        : this.connection.handle(menu),
     });
   }
 
@@ -213,12 +215,17 @@ abstract class MenuContainer extends TrayObject {
   }
 
   async remove(item: MenuEntry): Promise<void> {
-    await this.connection.request("menu.remove", { handle: this.handle, item: this.connection.handle(item) });
+    await this.connection.request("menu.remove", {
+      handle: this.handle,
+      item: this.connection.handle(item),
+    });
   }
 
   async removeAt(position: number): Promise<MenuEntry | null> {
     const item = await this.connection.request("menu.remove-at", { handle: this.handle, position });
-    return item === null ? null : this.connection.object(item) as MenuEntry;
+    return item === null
+      ? null
+      : this.connection.object(item) as MenuEntry;
   }
 }
 
@@ -321,7 +328,9 @@ export class TrayClient {
     const resource = await this.connection.request("tray.create", {
       options: {
         ...options,
-        menu: options.menu == null ? options.menu : this.connection.handle(options.menu),
+        menu: options.menu == null
+          ? options.menu
+          : this.connection.handle(options.menu),
       },
     });
     return new TrayIcon(this.connection, resource);
@@ -329,14 +338,20 @@ export class TrayClient {
 
   async createMenu(options: MenuOptions = {}): Promise<Menu> {
     const resource = await this.connection.request("menu.create", {
-      options: { ...options, items: options.items?.map((item) => this.connection.handle(item)) },
+      options: {
+        ...options,
+        items: options.items?.map((item) => this.connection.handle(item)),
+      },
     });
     return new Menu(this.connection, resource);
   }
 
   async createSubmenu(options: SubmenuOptions): Promise<Submenu> {
     const resource = await this.connection.request("submenu.create", {
-      options: { ...options, items: options.items?.map((item) => this.connection.handle(item)) },
+      options: {
+        ...options,
+        items: options.items?.map((item) => this.connection.handle(item)),
+      },
     });
     return new Submenu(this.connection, resource);
   }

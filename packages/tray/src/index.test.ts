@@ -78,23 +78,57 @@ describe("tray objects over Eventa", () => {
     const native = host(({ wire }) => ({ ok: true, value: resources[wire] ?? null }));
     const client = createTrayClient(native.context);
     const item = await client.createCheckMenuItem({ text: "Enabled" });
-    const container = await client.createMenu({ items: [item] });
-    const icon = { kind: "rgba" as const, rgba: [0, 128, 255, 255], width: 1, height: 1 };
+    const container = await client.createMenu({
+      items: [item],
+    });
+    const icon = {
+      kind: "rgba" as const,
+      rgba: [0, 128, 255, 255],
+      width: 1,
+      height: 1,
+    };
     const iconTray = await client.createTray({ icon, menu: container, tooltip: "" });
     await container.insert(2, item);
     await iconTray.setMenu(null);
     await iconTray.setIcon(null, false);
     expect((await container.items())[0]).toBeInstanceOf(CheckMenuItem);
 
-    expect(native.calls).toContainEqual({ wire: "kirie:tray:check-create", args: { options: { text: "Enabled" } } });
-    expect(native.calls).toContainEqual({ wire: "kirie:tray:menu-create", args: { options: { items: [check.handle] } } });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:check-create",
+      args: {
+        options: { text: "Enabled" },
+      },
+    });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:menu-create",
+      args: {
+        options: {
+          items: [check.handle],
+        },
+      },
+    });
     expect(native.calls).toContainEqual({
       wire: "kirie:tray:tray-create",
-      args: { options: { icon, menu: menu.handle, tooltip: "" } },
+      args: {
+        options: { icon, menu: menu.handle, tooltip: "" },
+      },
     });
-    expect(native.calls).toContainEqual({ wire: "kirie:tray:menu-insert", args: { handle: menu.handle, items: [check.handle], position: 2 } });
-    expect(native.calls).toContainEqual({ wire: "kirie:tray:tray-set-menu", args: { handle: tray.handle, menu: null } });
-    expect(native.calls).toContainEqual({ wire: "kirie:tray:tray-set-icon", args: { handle: tray.handle, icon: null, iconAsTemplate: false } });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:menu-insert",
+      args: {
+        handle: menu.handle,
+        items: [check.handle],
+        position: 2,
+      },
+    });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:tray-set-menu",
+      args: { handle: tray.handle, menu: null },
+    });
+    expect(native.calls).toContainEqual({
+      wire: "kirie:tray:tray-set-icon",
+      args: { handle: tray.handle, icon: null, iconAsTemplate: false },
+    });
   });
 
   it("calls predefined constructors with upstream argument shapes and preserves text defaults", async () => {
@@ -108,18 +142,42 @@ describe("tray objects over Eventa", () => {
     await client.predefined.separator();
     await client.predefined.sectionHeader("Actions");
     await client.predefined.about();
-    await client.predefined.about(null, { name: "My application", authors: ["Author"] });
+    await client.predefined.about(null, {
+      name: "My application",
+      authors: ["Author"],
+    });
     expect(item).toBeInstanceOf(PredefinedMenuItem);
     expect(item.id).toBe("native-id");
     expect(native.calls).toEqual([
       { wire: "kirie:tray:predefined-copy", args: {} },
-      { wire: "kirie:tray:predefined-copy", args: { text: null } },
-      { wire: "kirie:tray:predefined-copy", args: { text: "" } },
-      { wire: "kirie:tray:predefined-paste-and-match-style", args: { text: "Paste without formatting" } },
+      {
+        wire: "kirie:tray:predefined-copy",
+        args: { text: null },
+      },
+      {
+        wire: "kirie:tray:predefined-copy",
+        args: { text: "" },
+      },
+      {
+        wire: "kirie:tray:predefined-paste-and-match-style",
+        args: { text: "Paste without formatting" },
+      },
       { wire: "kirie:tray:predefined-separator", args: {} },
-      { wire: "kirie:tray:predefined-section-header", args: { text: "Actions" } },
+      {
+        wire: "kirie:tray:predefined-section-header",
+        args: { text: "Actions" },
+      },
       { wire: "kirie:tray:predefined-about", args: {} },
-      { wire: "kirie:tray:predefined-about", args: { text: null, metadata: { name: "My application", authors: ["Author"] } } },
+      {
+        wire: "kirie:tray:predefined-about",
+        args: {
+          text: null,
+          metadata: {
+            name: "My application",
+            authors: ["Author"],
+          },
+        },
+      },
     ]);
   });
 
@@ -136,33 +194,53 @@ describe("tray objects over Eventa", () => {
     const native = host(() => ({ ok: true, value: null }));
     const client = createTrayClient(native.context);
     const objects = resources.map((resource) => client.fromResource(resource));
-    const classes = [TrayIcon, Menu, CheckMenuItem, Submenu, MenuItem, IconMenuItem, PredefinedMenuItem];
+    const classes = [
+      TrayIcon,
+      Menu,
+      CheckMenuItem,
+      Submenu,
+      MenuItem,
+      IconMenuItem,
+      PredefinedMenuItem,
+    ];
     objects.forEach((object, index) => expect(object).toBeInstanceOf(classes[index]));
     expect(objects.map(({ id, handle, kind }) => ({ id, handle, kind }))).toEqual(resources);
     expect(native.calls).toHaveLength(0);
   });
 
   it("rejects foreign context references before invocation and permits the same borrowed context", async () => {
-    const native = host(({ wire }) => ({ ok: true, value: wire === "kirie:tray:menu-create" ? menu : check }));
+    const native = host(({ wire }) => ({
+      ok: true,
+      value: wire === "kirie:tray:menu-create"
+        ? menu
+        : check,
+    }));
     const otherNative = host(() => ({ ok: true, value: menu }));
     const client = createTrayClient(native.context);
     const sameContextClient = createTrayClient(native.context);
     const foreignClient = createTrayClient(otherNative.context);
     const item = await client.createCheckMenuItem({ text: "Enabled" });
-    const localMenu = await sameContextClient.createMenu({ items: [item] });
+    const localMenu = await sameContextClient.createMenu({
+      items: [item],
+    });
     const foreignMenu = await foreignClient.createMenu();
     await localMenu.append(item);
     const calls = otherNative.calls.length;
     await expect(foreignMenu.append(item)).rejects.toMatchObject({ code: "invalid-argument" });
     expect(otherNative.calls).toHaveLength(calls);
-    await expect(foreignClient.createMenu({ items: [item] })).rejects.toBeInstanceOf(TrayError);
+    await expect(foreignClient.createMenu({
+      items: [item],
+    })).rejects.toBeInstanceOf(TrayError);
     await expect(client.createTray({ menu: foreignMenu })).rejects.toMatchObject({ code: "invalid-argument" });
   });
 
   it("preserves native error codes and messages", async () => {
-    const native = host(({ wire }) => wire === "kirie:tray:tray-create" ?
-        { ok: true, value: tray } :
-        { ok: false, error: { code: "unsupported", message: "Native API is unavailable on this platform." } });
+    const native = host(({ wire }) => wire === "kirie:tray:tray-create"
+      ? { ok: true, value: tray }
+      : {
+          ok: false,
+          error: { code: "unsupported", message: "Native API is unavailable on this platform." },
+        });
     const iconTray = await createTrayClient(native.context).createTray();
     await expect(iconTray.showMenu()).rejects.toMatchObject({
       name: "TrayError",
@@ -181,7 +259,10 @@ describe("tray objects over Eventa", () => {
       type: "Click",
       id: "unexposed-tray",
       position: { x: 4, y: 8 },
-      rect: { position: { x: 1, y: 2 }, size: { width: 20, height: 20 } },
+      rect: {
+        position: { x: 1, y: 2 },
+        size: { width: 20, height: 20 },
+      },
       button: "Left",
       buttonState: "Up",
     };

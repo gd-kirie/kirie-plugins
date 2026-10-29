@@ -44,7 +44,9 @@ export function createQrClient(context: KirieEventaContext): QrClient {
       return toUint8Array(result.pngBase64);
     },
     async scanImage(png) {
-      return (await invoke.scanImage({ pngBase64: fromUint8Array(png) })).text;
+      return (await invoke.scanImage({
+        pngBase64: fromUint8Array(png),
+      })).text;
     },
     async scan() {
       return (await invoke.scan({})).text;
@@ -64,7 +66,9 @@ const cameraArchive = {
 
 const qr = defineKiriePlugin({
   id: "qr",
-  dotnetPackages: [{ id: "GdKirie.Qr", version: packageJson.version }],
+  dotnetPackages: [
+    { id: "GdKirie.Qr", version: packageJson.version },
+  ],
   godotAddons: [
     {
       id: "kirie-qr",

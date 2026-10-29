@@ -27,7 +27,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@gd-kirie/ipc-eventa": "0.15.0",
+    "@gd-kirie/ipc-eventa": "0.15.2",
     "@moeru/eventa": "catalog:"
   },
   "peerDependencies": {

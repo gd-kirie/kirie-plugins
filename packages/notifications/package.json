@@ -28,9 +28,9 @@
     "typecheck:godot": "tsc -p tsconfig.godot.json --noEmit"
   },
   "dependencies": {
-    "@gd-kirie/ipc-eventa": "0.15.0",
+    "@gd-kirie/ipc-eventa": "0.15.2",
     "@moeru/eventa": "catalog:",
-    "kirie": "0.15.0"
+    "kirie": "0.15.2"
   },
   "devDependencies": {
     "tsdown": "catalog:",

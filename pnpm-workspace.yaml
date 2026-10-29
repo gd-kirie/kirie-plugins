@@ -7,18 +7,18 @@ allowBuilds:
   tree-sitter-godot-resource: true
 
 catalog:
-  "@antfu/eslint-config": ^9.5.1
+  "@antfu/eslint-config": ^10.0.0
   "@moeru/eventa": ^1.0.2
   bumpp: ^12.3.0
   eslint: ^10.13.0
   eslint-plugin-format: ^2.0.1
-  tsdown: ^0.23.2
+  tsdown: ^0.23.3
   typescript: ^6.0.3
   typescript-to-gdscript: ^0.1.12
   vitest: 4.1.12
 
 minimumReleaseAgeExclude:
-  - '@gd-kirie/build@0.15.0'
-  - '@gd-kirie/ipc-eventa@0.15.0'
-  - '@gd-kirie/ipc@0.15.0'
-  - kirie@0.15.0
+  - '@gd-kirie/build@0.15.2'
+  - '@gd-kirie/ipc-eventa@0.15.2'
+  - '@gd-kirie/ipc@0.15.2'
+  - kirie@0.15.2
