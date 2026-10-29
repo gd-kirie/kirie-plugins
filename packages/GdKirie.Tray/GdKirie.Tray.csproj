@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GdKirie.EventaAdapter" Version="0.15.0" ExcludeAssets="contentFiles" />
+    <PackageReference Include="GdKirie.EventaAdapter" Version="0.15.2" ExcludeAssets="contentFiles" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
