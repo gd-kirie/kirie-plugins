@@ -12,13 +12,14 @@ catalog:
   bumpp: ^12.3.0
   eslint: ^10.13.0
   eslint-plugin-format: ^2.0.1
-  tsdown: ^0.23.3
+  tsdown: ^0.23.4
   typescript: ^6.0.3
   typescript-to-gdscript: ^0.1.12
   vitest: 4.1.12
 
 minimumReleaseAgeExclude:
-  - '@gd-kirie/build@0.15.2'
-  - '@gd-kirie/ipc-eventa@0.15.2'
-  - '@gd-kirie/ipc@0.15.2'
-  - kirie@0.15.2
+  - '@gd-kirie/build@0.16.0'
+  - '@gd-kirie/ipc-eventa@0.16.0'
+  - '@gd-kirie/ipc@0.16.0'
+  - kirie@0.16.0
+  - tsdown@0.23.4

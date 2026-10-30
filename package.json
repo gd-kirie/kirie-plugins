@@ -3,7 +3,7 @@
   "version": "0.15.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.15.0",
+  "packageManager": "pnpm@12.16.1",
   "scripts": {
     "build:packages": "pnpm -r run build",
     "lint:eslint": "eslint .",
@@ -17,6 +17,6 @@
     "bumpp": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
-    "kirie": "0.15.2"
+    "kirie": "0.16.0"
   }
 }

@@ -7,8 +7,8 @@ godot = "https://github.com/LemonNekoGH/vfox-godot.git#dd88823451008524efde019c6
 
 [tools]
 godot = "4.7.2-stable_mono"
-node = "24.22.1"
-pnpm = "12.15.0"
+node = "24.22.2"
+pnpm = "12.16.1"
 dotnet = "10.0.403"
 rust = { version = "1.99.1", components = ["clippy", "rustfmt"] }
 clang = { version = "23.1.4", os = ["linux"] }
