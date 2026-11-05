@@ -28,10 +28,10 @@
     "typecheck:godot": "tsc -p tsconfig.godot.json --noEmit"
   },
   "dependencies": {
-    "@gd-kirie/ipc-eventa": "0.15.2",
+    "@gd-kirie/ipc-eventa": "0.16.0",
     "@moeru/eventa": "catalog:",
     "js-base64": "^3.9.4",
-    "kirie": "0.15.2"
+    "kirie": "0.16.0"
   },
   "devDependencies": {
     "tsdown": "catalog:",
