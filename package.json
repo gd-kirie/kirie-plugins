@@ -3,7 +3,7 @@
   "version": "0.15.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.17.0",
   "scripts": {
     "build:packages": "pnpm -r run build",
     "lint:eslint": "eslint .",
