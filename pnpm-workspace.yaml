@@ -14,7 +14,7 @@ catalog:
   eslint-plugin-format: ^2.0.1
   tsdown: ^0.23.5
   typescript: ^6.0.3
-  typescript-to-gdscript: ^0.1.12
+  typescript-to-gdscript: ^0.1.13
   vitest: 4.1.12
 
 minimumReleaseAgeExclude:
@@ -23,3 +23,4 @@ minimumReleaseAgeExclude:
   - '@gd-kirie/ipc@0.16.0'
   - kirie@0.16.0
   - tsdown@0.23.5
+  - typescript-to-gdscript@0.1.13
