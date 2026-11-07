@@ -12,7 +12,7 @@ catalog:
   bumpp: ^12.3.0
   eslint: ^10.14.0
   eslint-plugin-format: ^2.0.1
-  tsdown: ^0.23.5
+  tsdown: ^0.23.7
   typescript: ^6.0.3
   typescript-to-gdscript: ^0.1.13
   vitest: 4.1.12
@@ -22,5 +22,6 @@ minimumReleaseAgeExclude:
   - '@gd-kirie/ipc-eventa@0.16.0'
   - '@gd-kirie/ipc@0.16.0'
   - kirie@0.16.0
-  - tsdown@0.23.5
+  - tsdown@0.23.7
   - typescript-to-gdscript@0.1.13
+  - rolldown-plugin-dts@0.30.0
