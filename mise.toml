@@ -8,9 +8,9 @@ godot = "https://github.com/LemonNekoGH/vfox-godot.git#dd88823451008524efde019c6
 [tools]
 godot = "4.7.2-stable_mono"
 node = "24.22.3"
-pnpm = "12.18.0"
+pnpm = "12.20.0"
 dotnet = "10.0.404"
-rust = { version = "1.99.1", components = ["clippy", "rustfmt"] }
+rust = { version = "1.100.0", components = ["clippy", "rustfmt"] }
 clang = { version = "23.1.4", os = ["linux"] }
 "pipx:apm-cli" = "0.35.0"
 
