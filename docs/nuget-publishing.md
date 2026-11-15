@@ -1,6 +1,6 @@
 # NuGet publishing
 
-This repository publishes `GdKirie.Tray`, `GdKirie.Notifications`, and `GdKirie.Qr` for .NET 10.
+This repository publishes `GdKirie.Tray`, `GdKirie.Notifications`, and `GdKirie.Qr` for .NET 11.
 The packages include their Eventa integration and reference the published `GdKirie.EventaAdapter` package.
 The Tray native extension ships in its npm package, not its NuGet package.
 The QR npm plugin supplies its native dependencies.
