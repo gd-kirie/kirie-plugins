@@ -10,11 +10,11 @@ catalog:
   "@antfu/eslint-config": ^10.0.0
   "@moeru/eventa": ^1.0.2
   bumpp: ^12.3.0
-  eslint: ^10.14.0
+  eslint: ^10.16.0
   eslint-plugin-format: ^2.0.1
-  tsdown: ^0.23.5
+  tsdown: ^0.23.7
   typescript: ^6.0.3
-  typescript-to-gdscript: ^0.1.13
+  typescript-to-gdscript: ^0.1.14
   vitest: 4.1.12
 
 minimumReleaseAgeExclude:
@@ -22,5 +22,8 @@ minimumReleaseAgeExclude:
   - '@gd-kirie/ipc-eventa@0.16.0'
   - '@gd-kirie/ipc@0.16.0'
   - kirie@0.16.0
-  - tsdown@0.23.5
-  - typescript-to-gdscript@0.1.13
+  - tsdown@0.23.7
+  - typescript-to-gdscript@0.1.14
+  - rolldown-plugin-dts@0.30.0
+  - eslint@10.16.0
+  - '@eslint/config-array@0.23.7'
