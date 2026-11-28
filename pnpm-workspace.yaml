@@ -10,7 +10,7 @@ catalog:
   "@antfu/eslint-config": ^10.0.0
   "@moeru/eventa": ^1.0.2
   bumpp: ^12.3.0
-  eslint: ^10.15.0
+  eslint: ^10.16.0
   eslint-plugin-format: ^2.0.1
   tsdown: ^0.23.7
   typescript: ^6.0.3
@@ -25,5 +25,5 @@ minimumReleaseAgeExclude:
   - tsdown@0.23.7
   - typescript-to-gdscript@0.1.14
   - rolldown-plugin-dts@0.30.0
-  - eslint@10.15.0
-  - '@eslint/config-array@0.23.6'
+  - eslint@10.16.0
+  - '@eslint/config-array@0.23.7'
